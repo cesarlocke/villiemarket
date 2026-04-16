@@ -3,145 +3,57 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Villie Market Pro | Categorías & Escáner IA</title>
+    <title>Villie Market Pro | Gestión & Escáner IA</title>
     <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700;900&display=swap" rel="stylesheet">
     <style>
         :root {
             --color-primary: #1e40af;
             --color-secondary: #f59e0b;
             --color-bg: #f8fafc;
         }
+        * { scroll-behavior: smooth; font-family: 'Inter', sans-serif; }
+        body { background-color: var(--color-bg); color: #1e293b; }
+        .glass-header { background: rgba(255, 255, 255, 0.9); backdrop-filter: blur(10px); border-bottom: 1px solid rgba(0,0,0,0.05); }
+        .product-card { transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); }
+        .product-card:hover { transform: translateY(-8px); box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1); }
+        .custom-loader { width: 24px; height: 24px; border: 3px solid #FFF; border-bottom-color: transparent; border-radius: 50%; display: none; animation: rotation 1s linear infinite; }
+        @keyframes rotation { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+        #toast { position: fixed; bottom: 2rem; left: 50%; transform: translateX(-50%) translateY(100px); background: #1e293b; color: white; padding: 12px 24px; border-radius: 30px; z-index: 2000; transition: all 0.4s; opacity: 0; }
+        #toast.show { transform: translateX(-50%) translateY(0); opacity: 1; }
+        .ia-gradient { background: linear-gradient(135deg, #6366f1 0%, #a855f7 100%); }
+        .modal-blur { backdrop-filter: blur(8px); background: rgba(15, 23, 42, 0.6); }
+        .category-pill { transition: all 0.2s; cursor: pointer; }
+        .category-pill.active { background-color: var(--color-primary); color: white; box-shadow: 0 4px 12px rgba(30, 64, 175, 0.3); }
 
-        * { scroll-behavior: smooth; }
-        
-        body {
-            background-color: var(--color-bg);
-            color: #1e293b;
-            font-family: 'Inter', system-ui, -apple-system, sans-serif;
-        }
-
-        .glass-header {
-            background: rgba(255, 255, 255, 0.9);
-            backdrop-filter: blur(10px);
-            border-bottom: 1px solid rgba(0,0,0,0.05);
-        }
-
-        .product-card {
-            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-        }
-        .product-card:hover {
-            transform: translateY(-8px);
-            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
-        }
-
-        .custom-loader {
-            width: 24px;
-            height: 24px;
-            border: 3px solid #FFF;
-            border-bottom-color: transparent;
-            border-radius: 50%;
-            display: none;
-            animation: rotation 1s linear infinite;
-        }
-
-        @keyframes rotation {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
-        }
-
-        #toast {
-            position: fixed;
-            bottom: 2rem;
-            left: 50%;
-            transform: translateX(-50%) translateY(100px);
-            opacity: 0;
-            transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-            z-index: 1000;
-        }
-        #toast.show {
-            transform: translateX(-50%) translateY(0);
-            opacity: 1;
-        }
-
-        .ia-gradient {
-            background: linear-gradient(135deg, #6366f1 0%, #a855f7 100%);
-        }
-
-        .modal-blur {
-            backdrop-filter: blur(8px);
-            background: rgba(15, 23, 42, 0.6);
-        }
-
-        .category-pill {
-            transition: all 0.2s;
-            cursor: pointer;
-        }
-        .category-pill.active {
-            background-color: var(--color-primary);
-            color: white;
-            box-shadow: 0 4px 12px rgba(30, 64, 175, 0.3);
-        }
-
-        /* Estilos para el Escáner */
-        #scanner-container {
-            position: relative;
-            width: 100%;
-            max-width: 400px;
-            aspect-ratio: 4/3;
-            background: #000;
-            border-radius: 20px;
-            overflow: hidden;
-            margin: 0 auto;
-        }
-        #video-preview {
-            width: 100%;
-            height: 100%;
-            object-fit: cover;
-        }
+        /* Estilos del Escáner */
+        #scanner-container { position: relative; width: 100%; max-width: 400px; aspect-ratio: 4/3; background: #000; border-radius: 20px; overflow: hidden; margin: 0 auto; }
+        #video-preview { width: 100%; height: 100%; object-fit: cover; }
         .scanner-overlay {
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            width: 70%;
-            height: 40%;
-            border: 2px solid #25D366;
-            border-radius: 10px;
-            box-shadow: 0 0 0 1000px rgba(0,0,0,0.4);
-            pointer-events: none;
+            position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
+            width: 70%; height: 40%; border: 2px solid #25D366; border-radius: 10px;
+            box-shadow: 0 0 0 1000px rgba(0,0,0,0.4); pointer-events: none;
         }
         .scanner-line {
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 2px;
-            background: #25D366;
-            box-shadow: 0 0 15px #25D366;
-            animation: scanMove 2s linear infinite;
+            position: absolute; top: 0; left: 0; width: 100%; height: 2px;
+            background: #25D366; box-shadow: 0 0 15px #25D366; animation: scanMove 2s linear infinite;
         }
-        @keyframes scanMove {
-            0% { top: 0; }
-            100% { top: 100%; }
-        }
+        @keyframes scanMove { 0% { top: 0; } 100% { top: 100%; } }
     </style>
 </head>
 <body>
 
-    <!-- NAVEGACIÓN -->
     <header class="glass-header sticky top-0 z-50 px-6 py-4 flex justify-between items-center">
-        <a href="#" class="text-2xl font-black tracking-tight text-blue-800 flex items-center gap-2">
+        <a href="/" class="text-2xl font-black tracking-tight text-blue-800 flex items-center gap-2">
             <span class="text-3xl">🛒</span> Villie<span class="text-amber-500 text-lg font-bold">MARKET</span>
         </a>
-        
         <nav class="hidden md:flex gap-8 font-medium text-slate-600">
             <a href="#inicio" class="hover:text-blue-600 transition">Inicio</a>
             <a href="#ia-chef" class="hover:text-blue-600 transition">IA Chef</a>
             <a href="#catalogo" class="hover:text-blue-600 transition">Productos</a>
         </nav>
-
         <div class="flex items-center gap-4">
-            <button id="btnAbrirCarrito" class="bg-blue-600 hover:bg-blue-700 text-white px-5 py-2.5 rounded-full flex items-center gap-3 shadow-lg shadow-blue-200 transition active:scale-95">
+            <button id="btnAbrirCarrito" class="bg-blue-600 hover:bg-blue-700 text-white px-5 py-2.5 rounded-full flex items-center gap-3 shadow-lg transition active:scale-95">
                 <span class="text-xl">🧺</span>
                 <span id="contadorCarrito" class="bg-white text-blue-600 font-bold px-2 rounded-md text-sm">0</span>
             </button>
@@ -149,188 +61,137 @@
     </header>
 
     <main id="seccionPublica">
-        <!-- HERO -->
         <section id="inicio" class="relative overflow-hidden bg-slate-900 py-24 px-6 text-center text-white">
             <div class="absolute inset-0 opacity-40">
-                <img src="https://images.unsplash.com/photo-1621939514649-280e2ee25f60?auto=format&fit=crop&w=1920&q=80" alt="Snacks y bebidas" class="w-full h-full object-cover">
+                <img src="https://images.unsplash.com/photo-1621939514649-280e2ee25f60?auto=format&fit=crop&w=1920&q=80" class="w-full h-full object-cover">
             </div>
             <div class="relative z-10 max-w-4xl mx-auto">
                 <h1 class="text-5xl md:text-7xl font-black mb-6 leading-tight">Calidad Premium en <br><span class="text-amber-400">Tu Vecindario</span></h1>
-                <p class="text-xl text-slate-300 mb-8 flex items-center justify-center gap-2">
-                    📍 <span id="displayDir">Cargando ubicación...</span>
-                </p>
-                <div class="flex flex-wrap justify-center gap-4">
-                    <a href="#catalogo" class="bg-blue-600 hover:bg-blue-500 px-8 py-4 rounded-xl font-bold transition">Ver Catálogo</a>
-                </div>
+                <p class="text-xl text-slate-300 mb-8 flex items-center justify-center gap-2">📍 <span id="displayDir">Cargando ubicación...</span></p>
+                <a href="#catalogo" class="bg-blue-600 hover:bg-blue-500 px-8 py-4 rounded-xl font-bold transition inline-block">Ver Catálogo</a>
             </div>
         </section>
 
-        <!-- IA CHEF -->
         <section id="ia-chef" class="py-20 px-6 max-w-5xl mx-auto">
             <div class="ia-gradient rounded-3xl p-8 md:p-12 text-white shadow-2xl relative overflow-hidden">
-                <div class="relative z-10">
-                    <h2 class="text-3xl font-black mb-4">¿No sabes qué cocinar? 🍳</h2>
-                    <p class="text-indigo-100 mb-8 max-w-xl">Dime qué ingredientes tienes y crearé una receta gourmet para ti.</p>
-                    
-                    <div class="flex flex-col md:flex-row gap-3">
-                        <input type="text" id="comidaInput" placeholder="Ej: Atún, cebolla, fideos..." class="flex-1 px-6 py-4 rounded-2xl text-slate-800 outline-none focus:ring-4 ring-white/30 text-lg shadow-inner">
-                        <button id="btnConsultarIA" class="bg-amber-400 hover:bg-amber-300 text-amber-950 font-black px-8 py-4 rounded-2xl transition flex items-center justify-center gap-3">
-                            <span id="btnIAText">Generar Receta ✨</span>
-                            <div class="custom-loader" id="iaLoader"></div>
-                        </button>
-                    </div>
+                <h2 class="text-3xl font-black mb-4">¿No sabes qué cocinar? 🍳</h2>
+                <p class="text-indigo-100 mb-8">Dime qué ingredientes tienes y crearé una receta gourmet para ti.</p>
+                <div class="flex flex-col md:flex-row gap-3">
+                    <input type="text" id="comidaInput" placeholder="Ej: Atún, cebolla, fideos..." class="flex-1 px-6 py-4 rounded-2xl text-slate-800 outline-none shadow-inner">
+                    <button id="btnConsultarIA" class="bg-amber-400 hover:bg-amber-300 text-amber-950 font-black px-8 py-4 rounded-2xl transition flex items-center justify-center gap-3">
+                        <span id="btnIAText">Generar Receta ✨</span>
+                        <div class="custom-loader" id="iaLoader"></div>
+                    </button>
                 </div>
-                <div id="sommelierRespuesta" class="mt-8 bg-white/10 backdrop-blur-md rounded-2xl p-6 hidden animate-in fade-in duration-500 border border-white/20"></div>
+                <div id="sommelierRespuesta" class="mt-8 bg-white/10 backdrop-blur-md rounded-2xl p-6 hidden border border-white/20"></div>
             </div>
         </section>
 
-        <!-- PRODUCTOS -->
         <section id="catalogo" class="py-16 px-6 bg-white">
             <div class="max-w-7xl mx-auto">
                 <div class="flex flex-col md:flex-row justify-between items-center mb-8 gap-6">
-                    <div>
-                        <h2 class="text-4xl font-black text-slate-900">Nuestros Productos</h2>
-                        <p class="text-slate-500">Filtrado por tipo y disponibilidad.</p>
-                    </div>
-                    <div class="relative w-full md:w-96">
-                        <input type="text" id="busquedaProducto" placeholder="Buscar por nombre..." class="w-full pl-12 pr-4 py-3 bg-slate-100 rounded-xl focus:ring-2 ring-blue-500 outline-none transition">
-                        <span class="absolute left-4 top-3.5 text-slate-400">🔍</span>
-                    </div>
+                    <h2 class="text-4xl font-black text-slate-900">Nuestros Productos</h2>
+                    <input type="text" id="busquedaProducto" placeholder="Buscar por nombre..." class="w-full md:w-80 p-3 bg-slate-100 rounded-xl outline-none border-none">
                 </div>
-
-                <!-- Filtros de Categoría -->
-                <div class="flex flex-wrap gap-2 mb-10 overflow-x-auto pb-2">
-                    <button class="category-pill active bg-slate-100 px-6 py-2 rounded-full font-bold text-sm whitespace-nowrap" data-filter="todos">Todos</button>
-                    <button class="category-pill bg-slate-100 px-6 py-2 rounded-full font-bold text-sm whitespace-nowrap" data-filter="solido-salado">Sólidos (Salados)</button>
-                    <button class="category-pill bg-slate-100 px-6 py-2 rounded-full font-bold text-sm whitespace-nowrap" data-filter="solido-dulce">Sólidos (Dulces)</button>
-                    <button class="category-pill bg-slate-100 px-6 py-2 rounded-full font-bold text-sm whitespace-nowrap" data-filter="liquido-sin-alcohol">Líquidos (Sin Alcohol)</button>
-                    <button class="category-pill bg-slate-100 px-6 py-2 rounded-full font-bold text-sm whitespace-nowrap" data-filter="liquido-con-alcohol">Líquidos (Con Alcohol)</button>
+                <div class="flex flex-wrap gap-2 mb-10 overflow-x-auto pb-2" id="filtrosCategorias">
+                    <button class="category-pill active bg-slate-100 px-6 py-2 rounded-full font-bold text-sm" data-filter="todos">Todos</button>
+                    <button class="category-pill bg-slate-100 px-6 py-2 rounded-full font-bold text-sm" data-filter="solido-salado">Sólidos (Salados)</button>
+                    <button class="category-pill bg-slate-100 px-6 py-2 rounded-full font-bold text-sm" data-filter="solido-dulce">Sólidos (Dulces)</button>
+                    <button class="category-pill bg-slate-100 px-6 py-2 rounded-full font-bold text-sm" data-filter="liquido-sin-alcohol">Líquidos (Sin Alcohol)</button>
+                    <button class="category-pill bg-slate-100 px-6 py-2 rounded-full font-bold text-sm" data-filter="liquido-con-alcohol">Líquidos (Con Alcohol)</button>
                 </div>
-
-                <div id="contenedorProductos" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
-                    <!-- Los productos se cargan dinámicamente -->
-                </div>
+                <div id="contenedorProductos" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8"></div>
             </div>
         </section>
     </main>
 
-    <!-- PANEL DE ADMINISTRACIÓN -->
     <section id="adminDashboard" class="hidden min-h-screen bg-slate-50 py-12 px-6">
         <div class="max-w-7xl mx-auto">
             <div class="flex justify-between items-center mb-8">
-                <div>
-                    <h2 class="text-3xl font-black text-slate-900">Control de Tienda</h2>
-                    <p class="text-slate-500">Gestión de productos y finanzas.</p>
-                </div>
-                <button id="btnCerrarSesionAdmin" class="bg-slate-200 hover:bg-slate-300 text-slate-700 font-bold px-6 py-2 rounded-xl transition">Salir</button>
+                <h2 class="text-3xl font-black">Control Maestro Villie ⚙️</h2>
+                <button id="btnCerrarSesionAdmin" class="bg-slate-200 px-6 py-2 rounded-xl font-bold">Salir</button>
             </div>
 
-            <!-- ESTADÍSTICAS FINANCIERAS -->
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-10">
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-10 text-center">
                 <div class="bg-white p-6 rounded-3xl shadow-sm border border-slate-100">
-                    <p class="text-slate-500 text-xs font-black uppercase tracking-widest mb-2">Ingresos (Conf.)</p>
+                    <p class="text-slate-400 text-xs font-bold uppercase mb-2">Ventas Conf.</p>
                     <p id="statGanancias" class="text-3xl font-black text-green-600">$0.00</p>
                 </div>
                 <div class="bg-white p-6 rounded-3xl shadow-sm border border-slate-100">
-                    <p class="text-slate-500 text-xs font-black uppercase tracking-widest mb-2">Gastos / Compras</p>
+                    <p class="text-slate-400 text-xs font-bold uppercase mb-2">Gastos / Compras</p>
                     <p id="statGastos" class="text-3xl font-black text-red-600">$0.00</p>
                 </div>
                 <div class="bg-white p-6 rounded-3xl shadow-sm border border-slate-100">
-                    <p class="text-slate-500 text-xs font-black uppercase tracking-widest mb-2">Balance Neto</p>
+                    <p class="text-slate-400 text-xs font-bold uppercase mb-2">Balance Neto</p>
                     <p id="statBalance" class="text-3xl font-black text-blue-600">$0.00</p>
                 </div>
             </div>
 
             <div class="grid grid-cols-1 lg:grid-cols-2 gap-10">
-                <!-- Inventario y Carga de Productos -->
                 <div class="bg-white p-8 rounded-3xl shadow-sm border border-slate-100">
                     <div class="flex justify-between items-center mb-6">
-                        <h3 class="text-xl font-bold">📦 Inventario</h3>
+                        <h3 class="text-xl font-bold">📦 Gestión de Inventario</h3>
                         <button id="btnAbrirScanner" class="bg-indigo-600 hover:bg-indigo-700 text-white font-bold px-4 py-2 rounded-xl flex items-center gap-2 transition text-sm">
-                            <span>📷 Escanear</span>
+                            <span>📷 Escanear Producto</span>
                         </button>
                     </div>
-                    
                     <div class="overflow-x-auto mb-8 max-h-[300px]">
                         <table class="w-full text-left">
-                            <thead>
-                                <tr class="text-slate-400 text-xs uppercase">
-                                    <th class="pb-4">Producto</th>
-                                    <th class="pb-4">Stock</th>
-                                    <th class="pb-4 text-right">Acciones</th>
-                                </tr>
+                            <thead class="text-slate-400 text-xs uppercase border-b">
+                                <tr><th class="pb-4">Producto</th><th class="pb-4">Stock</th><th class="pb-4 text-right">Acciones</th></tr>
                             </thead>
                             <tbody id="tablaInventario"></tbody>
                         </table>
                     </div>
-                    
-                    <hr class="mb-8">
-                    
-                    <h4 class="font-bold mb-4">Añadir / Editar Producto</h4>
+                    <h4 class="font-bold mb-4">Añadir/Editar Producto (Manual)</h4>
                     <div class="grid grid-cols-2 gap-4">
-                        <input type="text" id="pNombre" placeholder="Nombre" class="col-span-2 p-3 bg-slate-50 rounded-xl outline-none border border-slate-100 focus:ring-2 ring-blue-500">
-                        <input type="number" id="pPrecio" placeholder="Precio ($)" step="0.01" class="p-3 bg-slate-50 rounded-xl border border-slate-100">
-                        <input type="number" id="pStock" placeholder="Stock" class="p-3 bg-slate-50 rounded-xl border border-slate-100">
-                        <input type="text" id="pImagen" placeholder="URL Imagen" class="col-span-2 p-3 bg-slate-50 rounded-xl border border-slate-100">
-                        <select id="pCategoria" class="col-span-1 p-3 bg-slate-50 rounded-xl border border-slate-100">
+                        <input type="text" id="pNombre" placeholder="Nombre" class="col-span-2 p-3 bg-slate-50 rounded-xl border-none outline-none focus:ring-2 ring-blue-500">
+                        <input type="number" id="pPrecio" placeholder="Precio ($)" step="0.01" class="p-3 bg-slate-50 rounded-xl">
+                        <input type="number" id="pStock" placeholder="Stock" class="p-3 bg-slate-50 rounded-xl">
+                        <input type="text" id="pImagen" placeholder="URL Imagen" class="col-span-2 p-3 bg-slate-50 rounded-xl">
+                        <select id="pCategoria" class="col-span-1 p-3 bg-slate-50 rounded-xl">
                             <option value="solido-salado">Sólido - Salado</option>
                             <option value="solido-dulce">Sólido - Dulce</option>
                             <option value="liquido-sin-alcohol">Líquido - Sin Alcohol</option>
                             <option value="liquido-con-alcohol">Líquido - Con Alcohol</option>
                         </select>
-                        <button id="btnGuardarProducto" class="col-span-1 bg-blue-600 text-white font-bold p-3 rounded-xl hover:bg-blue-700 transition">💾 Guardar</button>
+                        <button id="btnGuardarProducto" class="bg-blue-600 text-white font-bold rounded-xl hover:bg-blue-700 transition">💾 Guardar</button>
                     </div>
                 </div>
 
-                <!-- Finanzas y Registro Manual -->
                 <div class="bg-white p-8 rounded-3xl shadow-sm border border-slate-100">
-                    <h3 class="text-xl font-bold mb-6">📑 Movimientos Recientes</h3>
-                    <div id="logLibroDiario" class="space-y-4 max-h-[400px] overflow-y-auto mb-8 pr-2">
-                        <!-- Botones de confirmación aparecerán aquí para ventas pendientes -->
+                    <h3 class="text-xl font-bold mb-6">📑 Libro Diario y Confirmaciones</h3>
+                    <div id="logLibroDiario" class="space-y-4 max-h-[400px] overflow-y-auto mb-8"></div>
+                    
+                    <hr class="mb-8">
+                    
+                    <h4 class="font-bold mb-4">Registrar Movimiento Manual</h4>
+                    <div class="flex flex-col gap-3 mb-8">
+                        <select id="tipoMovimiento" class="p-3 bg-slate-50 rounded-xl">
+                            <option value="venta">Ingreso Manual / Ganancia</option>
+                            <option value="gasto">Gasto Operativo</option>
+                            <option value="inversion">Inversión (Compra Stock)</option>
+                            <option value="perdida">Pérdida / Daño</option>
+                        </select>
+                        <input type="text" id="descMovimiento" placeholder="Concepto (Ej: Pago Luz)" class="p-3 bg-slate-50 rounded-xl">
+                        <input type="number" id="montoMovimiento" placeholder="Monto ($)" class="p-3 bg-slate-50 rounded-xl">
+                        <button id="btnGuardarMovimiento" class="bg-slate-800 text-white font-bold p-4 rounded-2xl transition hover:bg-slate-900">📝 Registrar Movimiento</button>
                     </div>
 
-                    <hr class="mb-8">
-
-                    <h4 class="font-bold mb-4">Registrar Gasto / Inversión</h4>
-                    <div class="flex flex-col gap-3">
-                        <select id="tipoMovimiento" class="p-3 bg-slate-50 rounded-xl border border-slate-100 outline-none">
-                            <option value="gasto">Gasto Operativo</option>
-                            <option value="inversion">Inversión (Stock)</option>
-                            <option value="perdida">Pérdida / Daños</option>
-                            <option value="venta">Ingreso Manual</option>
-                        </select>
-                        <input type="text" id="descMovimiento" placeholder="Concepto (Ej: Pago de luz)" class="p-3 bg-slate-50 rounded-xl border border-slate-100">
-                        <input type="number" id="montoMovimiento" placeholder="Monto ($)" class="p-3 bg-slate-50 rounded-xl border border-slate-100">
-                        <button id="btnGuardarMovimiento" class="bg-slate-800 text-white font-bold p-4 rounded-2xl hover:bg-slate-900 transition active:scale-95">📝 Registrar Movimiento</button>
+                    <h4 class="font-bold mb-4">Ajustes Públicos de Tienda</h4>
+                    <div class="grid grid-cols-1 gap-3">
+                        <input type="text" id="adminWhatsapp" placeholder="WhatsApp (Ej: 593985127134)" class="p-3 bg-slate-50 rounded-xl border-none">
+                        <input type="text" id="adminDireccion" placeholder="Dirección Física" class="p-3 bg-slate-50 rounded-xl border-none">
+                        <button id="btnGuardarAjustes" class="bg-green-600 text-white font-bold p-4 rounded-2xl hover:bg-green-700 transition">💾 Guardar Configuración</button>
                     </div>
                 </div>
             </div>
         </div>
     </section>
 
-    <!-- FOOTER -->
-    <footer class="bg-slate-900 text-slate-400 py-12 px-6 text-center">
-        <p class="mb-2 font-bold text-white">Villie Market Pro &copy; 2024</p>
-        <p id="footerDir">📍 Cargando...</p>
-        <button id="btnTriggerAdmin" class="text-[10px] mt-6 opacity-30">Administración</button>
-    </footer>
-
-    <!-- MODALES -->
-    <div id="modalLogin" class="fixed inset-0 z-[100] modal-blur hidden flex items-center justify-center p-6">
-        <div class="bg-white w-full max-w-md p-10 rounded-[40px] shadow-2xl">
-            <h3 class="text-3xl font-black mb-8 text-center">Acceso Admin</h3>
-            <input type="password" id="passAdmin" placeholder="Contraseña de Sistema" class="w-full p-4 bg-slate-100 rounded-2xl mb-6 text-center text-xl outline-none focus:ring-2 ring-blue-500">
-            <div class="flex gap-2">
-                <button id="btnAcceder" class="flex-1 bg-blue-600 text-white font-bold py-4 rounded-2xl">Entrar</button>
-                <button onclick="cerrarModales()" class="px-6 rounded-2xl font-bold bg-slate-100 text-slate-500">Cerrar</button>
-            </div>
-        </div>
-    </div>
-
-    <!-- Modal del Escáner -->
     <div id="modalScanner" class="fixed inset-0 z-[100] modal-blur hidden flex items-center justify-center p-6">
         <div class="bg-white w-full max-w-md p-6 rounded-[40px] shadow-2xl">
-            <h3 class="text-2xl font-black mb-4 text-center">Escáner de Productos</h3>
+            <h3 class="text-2xl font-black mb-4 text-center">Escáner IA de Productos</h3>
             <div id="scanner-container">
                 <video id="video-preview" autoplay playsinline muted></video>
                 <div class="scanner-overlay"><div class="scanner-line"></div></div>
@@ -346,10 +207,39 @@
         </div>
     </div>
 
+    <div id="modalEditarReg" class="fixed inset-0 z-[100] modal-blur hidden flex items-center justify-center p-6">
+        <div class="bg-white w-full max-w-md p-8 rounded-[40px] shadow-2xl relative">
+            <h3 class="text-2xl font-black mb-6 text-blue-900">✏️ Editar Movimiento</h3>
+            <input type="hidden" id="editRegId">
+            <select id="editRegTipo" class="w-full p-4 mb-4 bg-slate-50 rounded-xl">
+                <option value="venta">Ingreso / Venta</option>
+                <option value="gasto">Gasto / Pérdida</option>
+                <option value="inversion">Inversión (Stock)</option>
+            </select>
+            <input type="text" id="editRegConcepto" placeholder="Concepto" class="w-full p-4 mb-4 bg-slate-50 rounded-xl">
+            <input type="number" id="editRegMonto" placeholder="Monto $" class="w-full p-4 mb-6 bg-slate-50 rounded-xl">
+            <div class="flex gap-2">
+                <button id="btnUpdateReg" class="flex-1 bg-blue-600 text-white font-bold py-4 rounded-2xl">Guardar</button>
+                <button onclick="cerrarModales()" class="px-6 bg-slate-100 font-bold text-slate-600 rounded-2xl">Cancelar</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="modalLogin" class="fixed inset-0 z-[100] modal-blur hidden flex items-center justify-center p-6">
+        <div class="bg-white w-full max-w-md p-10 rounded-[40px] shadow-2xl text-center">
+            <h3 class="text-3xl font-black mb-8 text-slate-800">Acceso Master 🔒</h3>
+            <input type="password" id="passAdmin" placeholder="Contraseña del Sistema" class="w-full p-4 bg-slate-100 rounded-2xl mb-6 text-center text-xl outline-none focus:ring-2 ring-blue-500">
+            <div class="flex gap-2">
+                <button id="btnAcceder" class="flex-1 bg-blue-600 text-white font-bold py-4 rounded-2xl shadow-lg transition active:scale-95">Entrar</button>
+                <button onclick="cerrarModales()" class="px-6 rounded-2xl font-bold bg-slate-100 text-slate-500">Cerrar</button>
+            </div>
+        </div>
+    </div>
+
     <div id="modalCarrito" class="fixed inset-0 z-[100] modal-blur hidden flex items-center justify-center p-6">
         <div class="bg-white w-full max-w-lg rounded-[40px] shadow-2xl flex flex-col max-h-[90vh] overflow-hidden">
             <div class="p-8 border-b flex justify-between items-center">
-                <h3 class="text-2xl font-black">Tu Pedido 🧺</h3>
+                <h3 class="text-2xl font-black text-slate-800">Tu Pedido 🧺</h3>
                 <button onclick="cerrarModales()" class="text-slate-400 text-3xl font-bold">&times;</button>
             </div>
             <div id="listaCarrito" class="flex-1 overflow-y-auto p-8 space-y-4"></div>
@@ -358,119 +248,105 @@
                     <span class="font-bold text-slate-500">Total</span>
                     <span id="totalMonto" class="text-3xl font-black text-blue-600">$0.00</span>
                 </div>
-                <button id="btnWhatsApp" class="w-full bg-[#25D366] text-white font-black py-5 rounded-2xl flex items-center justify-center gap-3 text-lg">
-                    🚀 Enviar pedido por WhatsApp
-                </button>
+                <button id="btnWhatsApp" class="w-full bg-[#25D366] text-white font-black py-5 rounded-2xl flex items-center justify-center gap-3 text-lg transition active:scale-95">🚀 Enviar Pedido vía WhatsApp</button>
             </div>
         </div>
     </div>
 
-    <div id="toast" class="bg-slate-900 text-white px-8 py-4 rounded-full font-bold shadow-2xl">Operación exitosa</div>
+    <div id="toast">Operación exitosa</div>
+
+    <footer class="bg-slate-900 text-slate-400 py-12 px-6 text-center">
+        <p class="mb-2 font-bold text-white">Villie Market Pro &copy; 2026</p>
+        <p id="footerDir">📍 Cargando...</p>
+        <div class="mt-6">
+            <button id="btnTriggerAdmin" class="bg-white/5 hover:bg-white/10 px-4 py-2 rounded-lg text-xs transition border border-white/10 font-black tracking-widest uppercase">Acceso Administrativo</button>
+        </div>
+    </footer>
 
     <script type="module">
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
-        import { getAuth, signInAnonymously, signInWithCustomToken, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
-        import { getFirestore, collection, onSnapshot, addDoc, doc, updateDoc, deleteDoc, setDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.9.0/firebase-app.js";
+        import { getAuth, signInAnonymously, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.9.0/firebase-auth.js";
+        import { getFirestore, collection, onSnapshot, addDoc, doc, updateDoc, deleteDoc, setDoc } from "https://www.gstatic.com/firebasejs/10.9.0/firebase-firestore.js";
 
-        const firebaseConfig = typeof __firebase_config !== 'undefined' ? JSON.parse(__firebase_config) : { apiKey: "", projectId: "villie-market-pro" };
-        const appId = typeof __app_id !== 'undefined' ? __app_id : 'villie-pro-4';
+        // --- 1. TUS CREDENCIALES DE FIREBASE ---
+        const firebaseConfig = {
+            apiKey: "AIzaSyC1Xtkg5V9YaGADeUmjoWL0Z_MgDalKKhU",
+            authDomain: "villie-9ef15.firebaseapp.com",
+            projectId: "villie-9ef15",
+            storageBucket: "villie-9ef15.firebasestorage.app",
+            messagingSenderId: "372056218286",
+            appId: "1:372056218286:web:8feab32747552b02d96b3f"
+        };
+        
+        // --- 2. PON TU LLAVE DE GEMINI AQUÍ PARA EL ESCÁNER Y EL CHEF ---
+        const GEMINI_API_KEY = "AQ.Ab8RN6Kp-i_WisctdH7t6S9xhyQuGaMriQkkw82-wYlbnvy_gQ"; 
+
         const app = initializeApp(firebaseConfig);
         const auth = getAuth(app);
         const db = getFirestore(app);
-        const basePath = `artifacts/${appId}/public/data`;
 
-        let carrito = {};
-        let inventario = [];
+        let carrito = {}, inventario = [], filtroActual = "todos", stream = null;
         let config = { whatsapp: "593985127134", direccion: "Guayaquil, Ecuador" };
-        let filtroActual = "todos";
-        let stream = null;
 
-        const showToast = (m) => {
-            const t = document.getElementById('toast');
-            t.innerText = m; t.classList.add('show');
-            setTimeout(() => t.classList.remove('show'), 3000);
+        const showToast = (m) => { const t = document.getElementById('toast'); t.innerText = m; t.classList.add('show'); setTimeout(() => t.classList.remove('show'), 3000); };
+        const formatMoney = (n) => `$${parseFloat(n || 0).toFixed(2)}`;
+        
+        window.cerrarModales = () => { 
+            document.querySelectorAll('.modal-blur').forEach(m => m.classList.add('hidden')); 
+            if (stream) { stream.getTracks().forEach(t => t.stop()); stream = null; }
         };
 
-        const formatMoney = (n) => `$${parseFloat(n).toFixed(2)}`;
-
-        window.cerrarModales = () => {
-            document.querySelectorAll('.modal-blur').forEach(m => m.classList.add('hidden'));
-            if (stream) {
-                stream.getTracks().forEach(track => track.stop());
-                stream = null;
-            }
-        };
-
-        const init = async () => {
-            try {
-                if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
-                    await signInWithCustomToken(auth, __initial_auth_token);
-                } else {
-                    await signInAnonymously(auth);
-                }
-            } catch (err) { console.error("Auth Fail", err); }
-
+        // --- CONEXIÓN A BASE DE DATOS ---
+        signInAnonymously(auth).then(() => {
             onAuthStateChanged(auth, (user) => {
                 if(!user) return;
-                
-                onSnapshot(collection(db, 'artifacts', appId, 'public', 'data', 'inventory'), (snap) => {
-                    inventario = snap.docs.map(d => ({ id: d.id, ...d.data() }));
-                    renderPublic();
-                    renderAdminInv();
-                });
-
-                onSnapshot(collection(db, 'artifacts', appId, 'public', 'data', 'ledger'), (snap) => {
-                    const logs = snap.docs.map(d => ({ id: d.id, ...d.data() })).sort((a,b) => new Date(b.fecha) - new Date(a.fecha));
-                    renderLedger(logs);
-                });
-
-                onSnapshot(doc(db, 'artifacts', appId, 'public', 'data', 'settings', 'tienda'), (snap) => {
-                    if(snap.exists()) {
-                        config = snap.data();
-                        document.getElementById('displayDir').innerText = config.direccion;
+                onSnapshot(collection(db, 'inventory'), (snap) => { inventario = snap.docs.map(d => ({ id: d.id, ...d.data() })); renderPublic(); renderAdminInv(); });
+                onSnapshot(collection(db, 'ledger'), (snap) => { renderLedger(snap.docs.map(d => ({ id: d.id, ...d.data() })).sort((a,b) => new Date(b.fecha) - new Date(a.fecha))); });
+                onSnapshot(doc(db, 'settings', 'tienda'), (snap) => { 
+                    if(snap.exists()){ 
+                        config = snap.data(); 
+                        document.getElementById('displayDir').innerText = config.direccion; 
                         document.getElementById('footerDir').innerText = `📍 ${config.direccion}`;
+                        document.getElementById('adminWhatsapp').value = config.whatsapp;
+                        document.getElementById('adminDireccion').value = config.direccion;
                     }
                 });
             });
-        };
+        });
 
-        // --- CÁMARA Y ESCÁNER ---
+        // --- CÁMARA Y ESCÁNER IA (FUNCIONAL) ---
         async function startCamera() {
             try {
-                stream = await navigator.mediaDevices.getUserMedia({ 
-                    video: { facingMode: 'environment', width: { ideal: 1280 }, height: { ideal: 720 } } 
-                });
+                stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' } });
                 document.getElementById('video-preview').srcObject = stream;
-            } catch (err) {
-                showToast("No se pudo acceder a la cámara.");
-                cerrarModales();
-            }
+            } catch (err) { showToast("Cámara no disponible."); cerrarModales(); }
         }
 
-        async function processScannerImage() {
+        document.getElementById('btnCapturarScanner').onclick = async () => {
+            if (GEMINI_API_KEY === "PON_TU_API_KEY_AQUI" || GEMINI_API_KEY === "") {
+                showToast("Falta configurar la API KEY de Gemini en el código");
+                return;
+            }
+
             const video = document.getElementById('video-preview');
             const canvas = document.getElementById('scanner-canvas');
-            const context = canvas.getContext('2d');
             const loader = document.getElementById('scanner-loader');
             const btnText = document.getElementById('scanner-btn-text');
 
-            canvas.width = video.videoWidth;
-            canvas.height = video.videoHeight;
-            context.drawImage(video, 0, 0, canvas.width, canvas.height);
+            canvas.width = video.videoWidth; canvas.height = video.videoHeight;
+            canvas.getContext('2d').drawImage(video, 0, 0, canvas.width, canvas.height);
             const imageData = canvas.toDataURL('image/jpeg', 0.8).split(',')[1];
 
             loader.style.display = 'block'; btnText.innerText = "Identificando...";
             document.getElementById('btnCapturarScanner').disabled = true;
 
-            const apiKey = "";
             try {
-                const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-09-2025:generateContent?key=${apiKey}`, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
+                const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-09-2025:generateContent?key=${GEMINI_API_KEY}`, {
+                    method: 'POST', headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({
                         contents: [{
                             parts: [
-                                { text: "Identifica este producto. Devuelve JSON: { 'nombre': 'Nombre', 'precio_sugerido': 0.0, 'categoria': '...' }. Categorías válidas: solido-salado, solido-dulce, liquido-sin-alcohol, liquido-con-alcohol." },
+                                { text: "Identifica este producto. Devuelve JSON limpio: { 'nombre': 'Nombre', 'precio_sugerido': 0.0, 'categoria': '...' }. Categorías válidas: solido-salado, solido-dulce, liquido-sin-alcohol, liquido-con-alcohol." },
                                 { inlineData: { mimeType: "image/jpeg", data: imageData } }
                             ]
                         }]
@@ -482,216 +358,141 @@
                     document.getElementById('pNombre').value = productData.nombre;
                     document.getElementById('pPrecio').value = productData.precio_sugerido || "";
                     document.getElementById('pCategoria').value = productData.categoria || "solido-salado";
-                    showToast("¡Producto identificado!");
+                    showToast("Producto identificado 🏷️");
                     cerrarModales();
                 }
-            } catch (err) { showToast("Error al identificar."); }
-            finally {
-                loader.style.display = 'none'; btnText.innerText = "📷 Identificar Producto";
-                document.getElementById('btnCapturarScanner').disabled = false;
-            }
-        }
-
-        // --- RENDERIZADO ---
-        function renderPublic() {
-            const container = document.getElementById('contenedorProductos');
-            const search = document.getElementById('busquedaProducto').value.toLowerCase();
-            const filtrados = inventario.filter(p => (filtroActual === "todos" || p.categoria === filtroActual) && p.nombre.toLowerCase().includes(search));
-
-            container.innerHTML = filtrados.length === 0 ? `<div class="col-span-full py-10 text-center text-slate-400 font-bold">Sin existencias.</div>` :
-                filtrados.map(p => {
-                    const stock = p.stock || 0;
-                    return `
-                    <div class="bg-white product-card p-4 rounded-[32px] border border-slate-100 flex flex-col h-full shadow-sm">
-                        <div class="relative h-48 bg-slate-50 rounded-2xl overflow-hidden mb-4">
-                            <img src="${p.imagen}" class="w-full h-full object-contain mix-blend-multiply" onerror="this.src='https://via.placeholder.com/200?text=Villie+Market'">
-                            <div class="absolute top-2 right-2 bg-white/95 px-3 py-1 rounded-full text-[10px] font-black uppercase text-blue-600 shadow-sm border border-slate-100">Stock: ${stock}</div>
-                        </div>
-                        <div class="flex-1">
-                            <h3 class="font-black text-slate-800 text-lg leading-tight mb-1">${p.nombre}</h3>
-                            <p class="text-xs text-slate-400 font-bold uppercase mb-3">${p.categoria?.replace('-', ' ') || ''}</p>
-                            <p class="text-2xl font-black text-blue-600 mb-4">${formatMoney(p.precio)}</p>
-                        </div>
-                        ${stock > 0 ? `
-                            <div class="flex items-center justify-between bg-slate-100 rounded-xl p-1 mb-3">
-                                <button onclick="window.modTempQty('${p.id}', -1)" class="w-10 h-10 font-bold">-</button>
-                                <span id="qty-t-${p.id}" class="font-black text-slate-700">1</span>
-                                <button onclick="window.modTempQty('${p.id}', 1, ${stock})" class="w-10 h-10 font-bold">+</button>
-                            </div>
-                            <button onclick="window.addCart('${p.id}', ${stock})" class="w-full bg-slate-900 text-white font-black py-4 rounded-2xl hover:bg-blue-600 transition">Agregar</button>
-                        ` : `<button disabled class="w-full bg-slate-200 text-slate-400 font-black py-4 rounded-2xl">Agotado</button>`}
-                    </div>`;
-                }).join('');
-        }
-
-        window.modTempQty = (id, d, max) => {
-            const el = document.getElementById(`qty-t-${id}`);
-            let v = Math.max(1, Math.min(max, parseInt(el.innerText) + d));
-            el.innerText = v;
+            } catch (err) { showToast("No se pudo identificar el producto."); }
+            finally { loader.style.display = 'none'; btnText.innerText = "📷 Identificar Producto"; document.getElementById('btnCapturarScanner').disabled = false; }
         };
 
-        window.addCart = (id, max) => {
-            const qty = parseInt(document.getElementById(`qty-t-${id}`).innerText);
-            const p = inventario.find(x => x.id === id);
-            const inCart = carrito[id] ? carrito[id].qty : 0;
-            if (inCart + qty > max) return showToast("No hay stock suficiente.");
-            if (carrito[id]) carrito[id].qty += qty;
-            else carrito[id] = { name: p.nombre, price: p.precio, qty, max };
-            updateCartUI(); showToast("Agregado 🧺");
-            document.getElementById(`qty-t-${id}`).innerText = "1";
-        };
-
-        function updateCartUI() {
-            const list = document.getElementById('listaCarrito');
-            const totalEl = document.getElementById('totalMonto');
-            let count = 0, total = 0;
-            const items = Object.entries(carrito);
-            list.innerHTML = items.length === 0 ? `<p class="text-center py-10 font-bold text-slate-400">Carrito vacío.</p>` :
-                items.map(([id, it]) => {
-                    const sub = it.price * it.qty; count += it.qty; total += sub;
-                    return `<div class="flex justify-between border-b pb-4">
-                        <div class="flex-1">
-                            <p class="font-black text-slate-800">${it.name}</p>
-                            <p class="text-sm text-slate-400">${formatMoney(it.price)} x ${it.qty}</p>
-                        </div>
-                        <div class="flex items-center gap-3">
-                            <div class="flex items-center bg-slate-50 rounded-lg">
-                                <button onclick="window.upCart('${id}', -1)" class="px-3 font-bold">-</button>
-                                <span class="font-bold">${it.qty}</span>
-                                <button onclick="window.upCart('${id}', 1)" class="px-3 font-bold">+</button>
-                            </div>
-                            <p class="font-black w-20 text-right text-blue-600">${formatMoney(sub)}</p>
-                        </div>
-                    </div>`;
-                }).join('');
-            document.getElementById('contadorCarrito').innerText = count;
-            totalEl.innerText = formatMoney(total);
-        }
-
-        window.upCart = (id, d) => {
-            if (!carrito[id]) return;
-            carrito[id].qty += d;
-            if (carrito[id].qty <= 0) delete carrito[id];
-            else if (carrito[id].qty > carrito[id].max) { showToast("Stock máximo"); carrito[id].qty = carrito[id].max; }
-            updateCartUI();
-        };
-
-        function renderAdminInv() {
-            const tbody = document.getElementById('tablaInventario');
-            tbody.innerHTML = inventario.map(p => `<tr class="border-b text-sm">
-                <td class="py-3 font-bold text-slate-700">${p.nombre}</td>
-                <td class="py-3 font-black text-blue-600">${p.stock}</td>
-                <td class="py-3 text-right">
-                    <button onclick="window.delP('${p.id}')" class="text-red-500 bg-red-50 p-2 rounded-lg hover:bg-red-100 transition">🗑️</button>
-                </td>
-            </tr>`).join('');
-        }
-
-        function renderLedger(logs) {
-            const container = document.getElementById('logLibroDiario');
-            let v = 0, g = 0;
-            container.innerHTML = logs.map(m => {
-                if(m.estado === 'confirmado') {
-                    if (m.tipo === 'venta') v += m.monto;
-                    else g += m.monto;
-                }
-                const isVenta = m.tipo === 'venta';
-                return `<div class="flex justify-between p-4 bg-slate-50 rounded-2xl border border-slate-100 items-center">
-                    <div>
-                        <p class="font-black text-slate-800 leading-tight">${m.concepto}</p>
-                        <p class="text-[10px] text-slate-400 uppercase font-bold tracking-tighter">${new Date(m.fecha).toLocaleString()}</p>
-                    </div>
-                    <div class="text-right">
-                        <p class="font-black ${isVenta ? 'text-green-600' : 'text-red-600'}">${formatMoney(m.monto)}</p>
-                        ${m.estado === 'pendiente' ? `<button onclick="window.confM('${m.id}')" class="text-[10px] bg-amber-400 px-3 py-1 rounded-full font-black text-amber-900 mt-1 uppercase shadow-sm">Confirmar ✅</button>` : '<span class="text-[10px] text-slate-300 font-bold">OK</span>'}
-                    </div>
-                </div>`;
-            }).join('');
-            document.getElementById('statGanancias').innerText = formatMoney(v);
-            document.getElementById('statGastos').innerText = formatMoney(g);
-            document.getElementById('statBalance').innerText = formatMoney(v-g);
-        }
-
-        // --- ACCIONES ADMIN ---
-        window.delP = async (id) => { if(confirm("¿Eliminar producto?")) await deleteDoc(doc(db, 'artifacts', appId, 'public', 'data', 'inventory', id)); };
-        window.confM = async (id) => {
-            await updateDoc(doc(db, 'artifacts', appId, 'public', 'data', 'ledger', id), { estado: 'confirmado' });
-            showToast("Venta confirmada ✅");
-        };
-
-        document.getElementById('btnGuardarProducto').onclick = async () => {
-            const n = document.getElementById('pNombre').value, p = parseFloat(document.getElementById('pPrecio').value),
-                  s = parseInt(document.getElementById('pStock').value), i = document.getElementById('pImagen').value,
-                  c = document.getElementById('pCategoria').value;
-            if(!n || isNaN(p) || isNaN(s)) return showToast("Faltan datos.");
-            await addDoc(collection(db, 'artifacts', appId, 'public', 'data', 'inventory'), { nombre: n, precio: p, stock: s, imagen: i || '', categoria: c, fecha: new Date().toISOString() });
-            showToast("Producto guardado ✅");
-            ['pNombre', 'pPrecio', 'pStock', 'pImagen'].forEach(id => document.getElementById(id).value = '');
-        };
-
-        document.getElementById('btnGuardarMovimiento').onclick = async () => {
-            const tipo = document.getElementById('tipoMovimiento').value;
-            const desc = document.getElementById('descMovimiento').value.trim();
-            const monto = parseFloat(document.getElementById('montoMovimiento').value);
-            if(!desc || isNaN(monto)) return showToast("Ingresa concepto y monto.");
-            await addDoc(collection(db, 'artifacts', appId, 'public', 'data', 'ledger'), { tipo, concepto: desc, monto, estado: 'confirmado', fecha: new Date().toISOString() });
-            showToast("Movimiento registrado ✅");
-            document.getElementById('descMovimiento').value = ''; document.getElementById('montoMovimiento').value = '';
-        };
-
-        document.querySelectorAll('.category-pill').forEach(btn => btn.onclick = (e) => {
-            document.querySelectorAll('.category-pill').forEach(b => b.classList.remove('active'));
-            e.target.classList.add('active'); filtroActual = e.target.dataset.filter; renderPublic();
-        });
-
-        document.getElementById('busquedaProducto').oninput = renderPublic;
-        document.getElementById('btnAbrirCarrito').onclick = () => document.getElementById('modalCarrito').classList.remove('hidden');
-        document.getElementById('btnTriggerAdmin').onclick = () => document.getElementById('modalLogin').classList.remove('hidden');
-        document.getElementById('btnAbrirScanner').onclick = () => { document.getElementById('modalScanner').classList.remove('hidden'); startCamera(); };
-        document.getElementById('btnCapturarScanner').onclick = () => processScannerImage();
-
-        document.getElementById('btnAcceder').onclick = () => {
-            if(document.getElementById('passAdmin').value === "Villie25@") {
-                cerrarModales(); document.getElementById('seccionPublica').classList.add('hidden');
-                document.getElementById('adminDashboard').classList.remove('hidden');
-                window.scrollTo(0,0);
-            } else showToast("Error de acceso.");
-        };
-
-        document.getElementById('btnCerrarSesionAdmin').onclick = () => {
-            document.getElementById('adminDashboard').classList.add('hidden');
-            document.getElementById('seccionPublica').classList.remove('hidden');
-        };
-
-        document.getElementById('btnWhatsApp').onclick = async () => {
-            const entries = Object.entries(carrito); if(entries.length === 0) return;
-            let total = 0, msg = `🛒 *VILLIE MARKET - PEDIDO*\n\n`;
-            entries.forEach(([id, it]) => { msg += `• ${it.qty}x ${it.name} - ${formatMoney(it.price * it.qty)}\n`; total += it.price * it.qty; });
-            msg += `\n💰 *TOTAL: ${formatMoney(total)}*`;
-            await addDoc(collection(db, 'artifacts', appId, 'public', 'data', 'ledger'), { tipo: 'venta', concepto: 'Pedido WhatsApp', monto: total, estado: 'pendiente', fecha: new Date().toISOString() });
-            window.open(`https://api.whatsapp.com/send?phone=${config.whatsapp}&text=${encodeURIComponent(msg)}`, '_blank');
-            carrito = {}; updateCartUI(); cerrarModales();
-        };
-
-        // IA CHEF
+        // --- CHEF IA (FUNCIONAL) ---
         document.getElementById('btnConsultarIA').onclick = async () => {
-            const inp = document.getElementById('comidaInput').value.trim(); if(!inp) return;
-            const btn = document.getElementById('btnConsultarIA'), loader = document.getElementById('iaLoader'),
-                  txt = document.getElementById('btnIAText'), res = document.getElementById('sommelierRespuesta');
+            const inp = document.getElementById('comidaInput').value.trim(); 
+            if(!inp) return showToast("Escribe qué ingredientes tienes");
+            if (GEMINI_API_KEY === "PON_TU_API_KEY_AQUI" || GEMINI_API_KEY === "") return showToast("Falta la API KEY de Gemini");
+
+            const btn = document.getElementById('btnConsultarIA'), loader = document.getElementById('iaLoader'), txt = document.getElementById('btnIAText'), res = document.getElementById('sommelierRespuesta');
             btn.disabled = true; loader.style.display = 'block'; txt.style.display = 'none'; res.classList.add('hidden');
+            
             try {
-                const r = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-09-2025:generateContent?key=`, {
+                const r = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-09-2025:generateContent?key=${GEMINI_API_KEY}`, {
                     method: 'POST', headers: {'Content-Type': 'application/json'},
-                    body: JSON.stringify({ contents: [{ parts: [{ text: `Chef Villie de Villie Market. Receta con: ${inp}. Formato HTML (h3, p, ul).` }] }] })
+                    body: JSON.stringify({ contents: [{ parts: [{ text: `Eres el Chef Villie. Un usuario tiene: ${inp}. Dame una receta rápida en formato HTML (h3, p, ul). No uses bloques markdown.` }] }] })
                 });
                 const d = await r.json();
                 res.innerHTML = d.candidates[0].content.parts[0].text.replace(/```html|```/g, '');
                 res.classList.remove('hidden');
-            } catch(e) { showToast("Error de IA"); }
+            } catch(e) { showToast("Error al generar receta"); }
             finally { btn.disabled = false; loader.style.display = 'none'; txt.style.display = 'inline'; }
         };
 
-        init();
+        // --- RENDER PÚBLICO Y CARRITO ---
+        function renderPublic() {
+            const container = document.getElementById('contenedorProductos');
+            const search = document.getElementById('busquedaProducto').value.toLowerCase();
+            const filtrados = inventario.filter(p => (filtroActual === "todos" || p.categoria === filtroActual) && (p.nombre || "").toLowerCase().includes(search));
+            container.innerHTML = filtrados.length === 0 ? `<div class="col-span-full py-10 text-center text-slate-400 font-bold">Sin existencias.</div>` : filtrados.map(p => `
+                <div class="bg-white product-card p-4 rounded-[32px] border border-slate-100 flex flex-col h-full shadow-sm">
+                    <div class="relative h-48 bg-slate-50 rounded-2xl overflow-hidden mb-4"><img src="${p.imagen}" class="w-full h-full object-contain mix-blend-multiply" onerror="this.src='https://via.placeholder.com/200?text=Villie'"><div class="absolute top-2 right-2 bg-white/95 px-3 py-1 rounded-full text-[10px] font-black text-blue-600 shadow-sm border border-slate-100">Stock: ${p.stock || 0}</div></div>
+                    <div class="flex-1"><h3 class="font-black text-slate-800 text-lg leading-tight mb-1">${p.nombre}</h3><p class="text-[10px] text-slate-400 font-bold uppercase mb-3">${p.categoria?.replace('-', ' ') || ''}</p><p class="text-2xl font-black text-blue-600 mb-4">${formatMoney(p.precio)}</p></div>
+                    ${(p.stock || 0) > 0 ? `<div class="flex items-center justify-between bg-slate-100 rounded-xl p-1 mb-3"><button onclick="modT('${p.id}', -1)" class="w-10 h-10 font-bold hover:text-red-500">-</button><span id="qty-t-${p.id}" class="font-black text-slate-700">1</span><button onclick="modT('${p.id}', 1, ${p.stock})" class="w-10 h-10 font-bold hover:text-green-500">+</button></div><button onclick="addCart('${p.id}', ${p.stock})" class="w-full bg-slate-900 text-white font-black py-4 rounded-2xl shadow-lg hover:bg-blue-600 transition active:scale-95">Agregar</button>` : `<button disabled class="w-full bg-slate-200 text-slate-400 font-black py-4 rounded-2xl">Agotado</button>`}
+                </div>`).join('');
+        }
+
+        window.modT = (id, d, max) => { const el = document.getElementById(`qty-t-${id}`); el.innerText = Math.max(1, Math.min(max, parseInt(el.innerText) + d)); };
+        window.addCart = (id, max) => { 
+            const qty = parseInt(document.getElementById(`qty-t-${id}`).innerText), p = inventario.find(x => x.id === id);
+            if ((carrito[id]?.qty || 0) + qty > max) return showToast("Stock insuficiente");
+            if (carrito[id]) carrito[id].qty += qty; else carrito[id] = { name: p.nombre, price: p.precio, qty, max };
+            updateCartUI(); showToast("Agregado 🧺"); document.getElementById(`qty-t-${id}`).innerText = "1";
+        };
+
+        function updateCartUI() {
+            const list = document.getElementById('listaCarrito'), totalEl = document.getElementById('totalMonto');
+            let total = 0, count = 0, items = Object.entries(carrito);
+            list.innerHTML = items.length === 0 ? `<p class="text-center py-10 font-bold text-slate-400">Carrito vacío.</p>` : items.map(([id, it]) => { total += it.price * it.qty; count += it.qty; return `<div class="flex justify-between border-b border-slate-100 pb-4"><div class="flex-1"><p class="font-black text-slate-800">${it.name}</p><p class="text-sm text-slate-400">${formatMoney(it.price)} x ${it.qty}</p></div><div class="flex items-center gap-3"><div class="flex items-center bg-slate-50 rounded-lg"><button onclick="upC('${id}', -1)" class="px-3 font-bold hover:text-red-500">-</button><span class="font-bold">${it.qty}</span><button onclick="upC('${id}', 1)" class="px-3 font-bold hover:text-green-500">+</button></div><p class="font-black w-20 text-right text-blue-600">${formatMoney(it.price * it.qty)}</p></div></div>`; }).join('');
+            document.getElementById('contadorCarrito').innerText = count; totalEl.innerText = formatMoney(total);
+        }
+        window.upC = (id, d) => { carrito[id].qty += d; if (carrito[id].qty <= 0) delete carrito[id]; else if (carrito[id].qty > carrito[id].max) { carrito[id].qty = carrito[id].max; showToast("Stock límite"); } updateCartUI(); };
+
+        // --- ADMIN: INVENTARIO Y LIBRO DIARIO ---
+        function renderAdminInv() { document.getElementById('tablaInventario').innerHTML = inventario.map(p => `<tr class="border-b border-slate-50 text-sm"><td class="py-3 font-bold text-slate-700">${p.nombre}</td><td class="py-3 font-black text-blue-600">${p.stock || 0}</td><td class="py-3 text-right"><button onclick="delP('${p.id}')" class="text-red-500 bg-red-50 p-2 rounded-lg hover:bg-red-100 transition">🗑️</button></td></tr>`).join(''); }
+        window.delP = async (id) => { if(confirm("¿Eliminar producto?")) await deleteDoc(doc(db, 'inventory', id)); };
+
+        function renderLedger(logs) {
+            let v = 0, g = 0;
+            document.getElementById('logLibroDiario').innerHTML = logs.map(m => {
+                if(m.estado === 'confirmado') { if (m.tipo === 'venta') v += m.monto; else g += m.monto; }
+                const cLimpio = m.concepto ? m.concepto.replace(/'/g, "\\'") : '';
+                return `<div class="flex justify-between p-4 bg-slate-50 rounded-2xl border border-slate-100 items-center"><div><p class="font-black text-slate-800">${m.concepto}</p><p class="text-[10px] text-slate-400 uppercase font-black">${new Date(m.fecha).toLocaleString()}</p></div><div class="text-right"><p class="font-black ${m.tipo === 'venta' ? 'text-green-600' : 'text-red-600'}">${formatMoney(m.monto)}</p>${m.estado === 'pendiente' ? `<button onclick="confM('${m.id}')" class="text-[10px] bg-green-100 px-3 py-1 rounded-full font-black text-green-700 mt-1 uppercase active:scale-95 hover:bg-green-200 transition">✅ Aprobar</button>` : ''} <button onclick="openEditReg('${m.id}', '${m.tipo}', '${cLimpio}', ${m.monto})" class="text-blue-500 text-sm ml-2" title="Editar">✏️</button> <button onclick="delM('${m.id}')" class="text-red-500 text-sm ml-2" title="Eliminar">🗑️</button></div></div>`;
+            }).join('');
+            document.getElementById('statGanancias').innerText = formatMoney(v); document.getElementById('statGastos').innerText = formatMoney(g); document.getElementById('statBalance').innerText = formatMoney(v-g);
+        }
+        
+        window.confM = async (id) => { await updateDoc(doc(db, 'ledger', id), { estado: 'confirmado' }); showToast("Venta confirmada ✅"); };
+        window.delM = async (id) => { if(confirm("¿Eliminar registro financiero?")) await deleteDoc(doc(db, 'ledger', id)); };
+        
+        window.openEditReg = (id, t, c, m) => { 
+            document.getElementById('editRegId').value = id; document.getElementById('editRegTipo').value = t; 
+            document.getElementById('editRegConcepto').value = c; document.getElementById('editRegMonto').value = m;
+            document.getElementById('modalEditarReg').classList.remove('hidden');
+        };
+        
+        document.getElementById('btnUpdateReg').onclick = async () => {
+            const id = document.getElementById('editRegId').value, t = document.getElementById('editRegTipo').value,
+                  c = document.getElementById('editRegConcepto').value.trim(), m = parseFloat(document.getElementById('editRegMonto').value);
+            if(!c || isNaN(m)) return showToast("Datos inválidos");
+            await updateDoc(doc(db, 'ledger', id), { tipo: t, concepto: c, monto: m });
+            cerrarModales(); showToast("Registro actualizado ✏️");
+        };
+
+        // --- BOTONES DE GUARDAR ---
+        document.getElementById('btnGuardarProducto').onclick = async () => {
+            const n = document.getElementById('pNombre').value.trim(), p = parseFloat(document.getElementById('pPrecio').value),
+                  s = parseInt(document.getElementById('pStock').value) || 0, i = document.getElementById('pImagen').value.trim(),
+                  c = document.getElementById('pCategoria').value;
+            if(!n || isNaN(p)) return showToast("Faltan datos");
+            await addDoc(collection(db, 'inventory'), { nombre: n, precio: p, stock: s, imagen: i, categoria: c, fecha: new Date().toISOString() });
+            ['pNombre', 'pPrecio', 'pStock', 'pImagen'].forEach(id => document.getElementById(id).value = ''); showToast("Producto guardado ✅");
+        };
+
+        document.getElementById('btnGuardarMovimiento').onclick = async () => {
+            const t = document.getElementById('tipoMovimiento').value, c = document.getElementById('descMovimiento').value.trim(), m = parseFloat(document.getElementById('montoMovimiento').value);
+            if(!c || isNaN(m)) return showToast("Faltan datos");
+            await addDoc(collection(db, 'ledger'), { tipo: t, concepto: c, monto: m, estado: 'confirmado', fecha: new Date().toISOString() });
+            document.getElementById('descMovimiento').value = ''; document.getElementById('montoMovimiento').value = ''; showToast("Movimiento registrado ✅");
+        };
+
+        document.getElementById('btnGuardarAjustes').onclick = async () => {
+            await setDoc(doc(db, 'settings', 'tienda'), { whatsapp: document.getElementById('adminWhatsapp').value.trim(), direccion: document.getElementById('adminDireccion').value.trim() });
+            showToast("Ajustes guardados 💾");
+        };
+
+        // --- UI E INTERACCIONES ---
+        document.querySelectorAll('.category-pill').forEach(btn => btn.onclick = (e) => { document.querySelectorAll('.category-pill').forEach(b => b.classList.remove('active')); e.target.classList.add('active'); filtroActual = e.target.dataset.filter; renderPublic(); });
+        document.getElementById('busquedaProducto').oninput = renderPublic;
+        document.getElementById('btnAbrirCarrito').onclick = () => document.getElementById('modalCarrito').classList.remove('hidden');
+        document.getElementById('btnTriggerAdmin').onclick = () => document.getElementById('modalLogin').classList.remove('hidden');
+        document.getElementById('btnAbrirScanner').onclick = () => { document.getElementById('modalScanner').classList.remove('hidden'); startCamera(); };
+        
+        document.getElementById('btnAcceder').onclick = () => {
+            if(document.getElementById('passAdmin').value === "Villie25@") {
+                cerrarModales(); document.getElementById('seccionPublica').classList.add('hidden');
+                document.getElementById('adminDashboard').classList.remove('hidden');
+                document.getElementById('passAdmin').value = ""; window.scrollTo(0,0);
+            } else showToast("Clave incorrecta ❌");
+        };
+        document.getElementById('btnCerrarSesionAdmin').onclick = () => { document.getElementById('adminDashboard').classList.add('hidden'); document.getElementById('seccionPublica').classList.remove('hidden'); window.scrollTo(0,0); };
+
+        document.getElementById('btnWhatsApp').onclick = async () => {
+            const entries = Object.entries(carrito); if(entries.length === 0) return;
+            let total = 0, msg = `🛒 *PEDIDO VILLIE MARKET*\n\n`;
+            entries.forEach(([id, it]) => { msg += `• ${it.qty}x ${it.name} - ${formatMoney(it.price * it.qty)}\n`; total += it.price * it.qty; });
+            msg += `\n💰 *TOTAL: ${formatMoney(total)}*`;
+            await addDoc(collection(db, 'ledger'), { tipo: 'venta', concepto: 'Pedido WhatsApp', monto: total, estado: 'pendiente', fecha: new Date().toISOString() });
+            window.open(`https://api.whatsapp.com/send?phone=${config.whatsapp}&text=${encodeURIComponent(msg)}`, '_blank');
+            carrito = {}; updateCartUI(); cerrarModales();
+        };
     </script>
 </body>
 </html>
