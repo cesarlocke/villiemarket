@@ -1,0 +1,402 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Villie Market | Gestión y Ventas</title>
+    <meta name="description" content="Tu tienda de confianza en Guayaquil.">
+    <meta name="google-site-verification" content="f0p56Oeea5eK_okmIL6jrvtPrevLRfGNc1YK-UwQFoc" />
+    <style>
+        :root {
+            --color-primary: #1565C0;
+            --color-secondary: #FF8F00;
+            --color-success: #2e7d32;
+            --color-danger: #c62828;
+            --color-info: #0277bd;
+            --color-bg: #f5f7fa;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Segoe UI', sans-serif; scroll-behavior: smooth; }
+        body { background-color: var(--color-bg); color: #333; line-height: 1.6; }
+
+        header {
+            background-color: var(--color-primary); color: white; padding: 1rem 5%;
+            display: flex; justify-content: space-between; align-items: center;
+            position: sticky; top: 0; z-index: 100; box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+        }
+        .logo { font-size: 1.8rem; font-weight: 900; color: white; text-decoration: none; display: flex; align-items: center; }
+        nav ul { list-style: none; display: flex; gap: 2rem; }
+        nav a { color: white; text-decoration: none; font-weight: 500; transition: 0.3s; }
+        nav a:hover { color: var(--color-secondary); }
+
+        .hero {
+            background: linear-gradient(rgba(21, 101, 192, 0.7), rgba(21, 101, 192, 0.7)), 
+                        url('https://images.unsplash.com/photo-1542838132-92c53300491e?auto=format&fit=crop&w=1920&q=80') center/cover;
+            height: 50vh; display: flex; flex-direction: column; justify-content: center; align-items: center;
+            text-align: center; color: white; padding: 0 20px;
+        }
+        .hero h1 { font-size: 3.5rem; margin-bottom: 1rem; }
+        .hero h1 span { color: var(--color-secondary); }
+
+        .section-title { font-size: 2.5rem; color: var(--color-primary); margin-bottom: 2rem; text-align: center; }
+        .ia-section { padding: 4rem 5%; background: white; text-align: center; }
+        .productos-section { padding: 4rem 5%; text-align: center; }
+
+        .grid-productos { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 2rem; max-width: 1200px; margin: 0 auto; }
+        .tarjeta-producto { background: white; padding: 1.5rem; border-radius: 15px; box-shadow: 0 5px 15px rgba(0,0,0,0.05); transition: 0.3s; }
+        .tarjeta-producto:hover { transform: translateY(-10px); }
+        .tarjeta-producto img { width: 100%; height: 180px; object-fit: contain; margin-bottom: 1rem; }
+        
+        .controles-cantidad { display: flex; justify-content: center; align-items: center; gap: 15px; margin: 15px 0; }
+        .btn-cant { width: 35px; height: 35px; border-radius: 50%; border: 1px solid #ddd; background: white; cursor: pointer; font-size: 1.2rem; }
+
+        .btn { padding: 12px 25px; background-color: var(--color-secondary); color: white; font-weight: bold; border: none; cursor: pointer; border-radius: 8px; transition: 0.3s; text-decoration: none; display: inline-block; }
+
+        #adminDashboard { display: none; padding: 2rem 5%; background: #f0f2f5; min-height: 100vh; }
+        .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 1rem; margin-bottom: 2rem; }
+        .stat-box { background: white; padding: 1.5rem; border-radius: 10px; text-align: center; box-shadow: 0 2px 5px rgba(0,0,0,0.05); }
+        .admin-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+        @media (max-width: 1000px) { .admin-grid { grid-template-columns: 1fr; } }
+        .admin-card { background: white; padding: 1.5rem; border-radius: 12px; box-shadow: 0 2px 10px rgba(0,0,0,0.05); margin-bottom: 20px; }
+        
+        table { width: 100%; border-collapse: collapse; font-size: 0.85rem; margin-top: 10px; }
+        th, td { padding: 10px; border-bottom: 1px solid #eee; text-align: left; }
+        th { background: #f8f9fa; }
+
+        .status-pendiente { color: var(--color-secondary); font-weight: bold; }
+        .status-confirmado { color: var(--color-success); font-weight: bold; }
+        .status-devuelto { color: var(--color-danger); text-decoration: line-through; opacity: 0.6; }
+
+        .modal { display: none; position: fixed; z-index: 1000; left: 0; top: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); }
+        .modal-contenido { background: white; margin: 5% auto; padding: 2rem; width: 90%; max-width: 500px; border-radius: 15px; position: relative; max-height: 80vh; overflow-y: auto; }
+
+        input, select, textarea { width: 100%; padding: 10px; margin: 5px 0 15px 0; border: 1px solid #ccc; border-radius: 5px; }
+        footer { background: #2c3e50; color: white; padding: 3rem 5%; text-align: center; }
+    </style>
+</head>
+<body>
+
+    <header>
+        <a href="/" class="logo"><span style="margin-right: 10px;">🛒</span>Vil<span style="color: var(--color-secondary);">lie</span></a>
+        <nav>
+            <ul>
+                <li><a href="#inicio">Inicio</a></li>
+                <li><a href="#ia-recetas">Recetas IA</a></li>
+                <li><a href="#productos">Catálogo</a></li>
+            </ul>
+        </nav>
+        <div id="btnAbrirCarrito" style="cursor:pointer; font-size: 1.4rem;">🛍️ <span id="contadorCarrito">0</span></div>
+    </header>
+
+    <div id="seccionPublica">
+        <section id="inicio" class="hero">
+            <h1>Bienvenido a Villie <span>Cesar</span></h1>
+            <p id="displayDir">Cargando ubicación...</p>
+            <br>
+            <a href="#productos" class="btn">Explorar Catálogo</a>
+        </section>
+
+        <section id="ia-recetas" class="ia-section">
+            <h2 class="section-title">Asistente de Cocina IA 🍳</h2>
+            <p>Dinos qué tienes y te daremos una idea rápida.</p>
+            <div style="max-width: 600px; margin: 2rem auto;">
+                <input type="text" id="comidaInput" placeholder="Ej: arroz, huevos y tomate...">
+                <button class="btn" id="btnConsultarIA" style="width:100%">Generar Receta Mágica ✨</button>
+            </div>
+            <div id="sommelierLoading" style="display:none; margin: 1rem;">Pensando... ⏳</div>
+            <div id="sommelierRespuesta" style="display:none; text-align:left; background:#f9f9f9; padding:20px; border-left:5px solid var(--color-secondary); border-radius:8px; max-width:600px; margin:0 auto;"></div>
+        </section>
+
+        <section id="productos" class="productos-section">
+            <h2 class="section-title">Nuestros Pasillos</h2>
+            <div id="loader">Cargando bodega...</div>
+            <div class="grid-productos" id="contenedorProductos"></div>
+        </section>
+    </div>
+
+    <section id="adminDashboard">
+        <div class="admin-container">
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom: 2rem;">
+                <h2>⚙️ Control Maestro Villie</h2>
+                <button class="btn" style="background:#e74c3c" id="btnCerrarSesionAdmin">Salir del Panel</button>
+            </div>
+
+            <div class="stats-grid">
+                <div class="stat-box"><h4 style="color:var(--color-success)">Ventas Conf.</h4><div class="valor" id="statGanancias">$0.00</div></div>
+                <div class="stat-box"><h4 style="color:var(--color-danger)">Gastos</h4><div class="valor" id="statGastos">$0.00</div></div>
+                <div class="stat-box"><h4 style="color:var(--color-info)">Inversión</h4><div class="valor" id="statInversiones">$0.00</div></div>
+                <div class="stat-box"><h4>Balance Real</h4><div class="valor" id="statBalance">$0.00</div></div>
+            </div>
+
+            <div class="admin-card">
+                <h3>📖 Libro Diario (Ventas y Movimientos)</h3>
+                <p style="font-size:0.8rem; color:gray; margin-bottom:10px;">* Confirma las ventas de WhatsApp para sumarlas al balance.</p>
+                <div style="overflow-x: auto; max-height: 450px;">
+                    <table>
+                        <thead><tr><th>Fecha</th><th>Concepto</th><th>Monto</th><th>Estado</th><th>Acciones</th></tr></thead>
+                        <tbody id="logActividad"></tbody>
+                    </table>
+                </div>
+            </div>
+
+            <div class="admin-grid">
+                <div>
+                    <div class="admin-card">
+                        <h3>📞 Ajustes del Negocio</h3>
+                        <label>WhatsApp Pedidos (593...)</label>
+                        <input type="text" id="confWhatsapp">
+                        <label>Dirección Tienda</label>
+                        <input type="text" id="confDireccion">
+                        <button class="btn" style="background:var(--color-success); width:100%" id="btnGuardarAjustes">Guardar Cambios</button>
+                    </div>
+                    <div class="admin-card">
+                        <h3>➕ Movimiento de Caja</h3>
+                        <select id="tipoMovimiento">
+                            <option value="gasto">Gasto / Pérdida</option>
+                            <option value="inversion">Inversión (Stock)</option>
+                        </select>
+                        <input type="text" id="descMovimiento" placeholder="Concepto">
+                        <input type="number" id="montoMovimiento" placeholder="Monto $">
+                        <button class="btn" style="width:100%" id="btnGuardarMovimiento">Registrar Movimiento</button>
+                    </div>
+                </div>
+                <div class="admin-card">
+                    <h3>📦 Gestión de Inventario</h3>
+                    <div class="admin-grid" style="margin-bottom:20px;">
+                        <input type="text" id="pNombre" placeholder="Nombre">
+                        <input type="number" id="pPrecio" placeholder="Precio">
+                        <input type="text" id="pImagen" placeholder="URL Imagen" style="grid-column: span 2;">
+                        <button class="btn" id="btnGuardarProducto" style="grid-column: span 2;">Subir Producto</button>
+                    </div>
+                    <table>
+                        <thead><tr><th>Producto</th><th>Precio</th><th>Acción</th></tr></thead>
+                        <tbody id="tablaProductosAdmin"></tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <div id="modalCarrito" class="modal">
+        <div class="modal-contenido">
+            <span id="cerrarCarrito" style="position:absolute; right:20px; cursor:pointer; font-weight:bold;">X</span>
+            <h3>Tu Canasta 🧺</h3><br>
+            <div id="listaCarrito"></div>
+            <div style="display:flex; justify-content:space-between; font-weight:bold; font-size: 1.2rem; border-top: 1px solid #eee; padding-top:10px;">
+                <span>Total:</span><span id="totalMonto">$0.00</span>
+            </div><br>
+            <button class="btn" style="background: #25D366; width:100%" id="btnWhatsApp">📱 Finalizar por WhatsApp</button>
+        </div>
+    </div>
+
+    <div id="modalLogin" class="modal">
+        <div class="modal-contenido" style="text-align:center;">
+            <h3>Seguridad Villie</h3><br>
+            <input type="password" id="passAdmin" placeholder="Contraseña Maestra">
+            <button class="btn" style="width:100%" id="btnAcceder">Acceder al Panel</button>
+        </div>
+    </div>
+
+    <footer>
+        <p id="footerInfo">📍 Cargando...</p>
+        <p>Villie Market © 2026 | <a href="#" id="linkAdmin" style="color:#bdc3c7; text-decoration:none;">Admin</a></p>
+    </footer>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.9.0/firebase-app.js";
+        import { getAuth, signInAnonymously } from "https://www.gstatic.com/firebasejs/10.9.0/firebase-auth.js";
+        import { getFirestore, collection, onSnapshot, addDoc, doc, updateDoc, deleteDoc, query, orderBy, setDoc } from "https://www.gstatic.com/firebasejs/10.9.0/firebase-firestore.js";
+
+        const firebaseConfig = {
+          apiKey: "AIzaSyC1Xtkg5V9YaGADeUmjoWL0Z_MgDalKKhU",
+          authDomain: "villie-9ef15.firebaseapp.com",
+          projectId: "villie-9ef15",
+          storageBucket: "villie-9ef15.firebasestorage.app",
+          messagingSenderId: "372056218286",
+          appId: "1:372056218286:web:8feab32747552b02d96b3f"
+        };
+        
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        const db = getFirestore(app);
+
+        let carrito = {}; 
+        let configNegocio = { whatsapp: "593985127134", direccion: "Guayaquil, Ecuadro" };
+        let prodsCache = [];
+
+        signInAnonymously(auth).then(() => {
+            onSnapshot(doc(db, 'settings', 'store_info'), (d) => {
+                if(d.exists()) {
+                    configNegocio = d.data();
+                    document.getElementById('displayDir').innerText = configNegocio.direccion;
+                    document.getElementById('footerInfo').innerText = `📍 ${configNegocio.direccion} | 📱 ${configNegocio.whatsapp}`;
+                    document.getElementById('confWhatsapp').value = configNegocio.whatsapp;
+                    document.getElementById('confDireccion').value = configNegocio.direccion;
+                }
+            });
+
+            onSnapshot(collection(db, 'inventory'), (snap) => {
+                const cont = document.getElementById('contenedorProductos');
+                const tAdmin = document.getElementById('tablaProductosAdmin');
+                cont.innerHTML = ''; tAdmin.innerHTML = '';
+                document.getElementById('loader').style.display = 'none';
+                prodsCache = [];
+                snap.forEach(d => {
+                    const p = {id: d.id, ...d.data()};
+                    prodsCache.push(p);
+                    cont.innerHTML += `<div class="tarjeta-producto"><img src="${p.imagen}"><h3>${p.nombre}</h3><p style="font-weight:bold; color:var(--color-primary); font-size:1.4rem;">$${parseFloat(p.precio).toFixed(2)}</p><div class="controles-cantidad"><button class="btn-cant" onclick="cambiarCant('${p.id}', -1)">-</button><span id="cant-${p.id}" style="font-weight:bold; font-size:1.2rem;">1</span><button class="btn-cant" onclick="cambiarCant('${p.id}', 1)">+</button></div><button class="btn" style="width:100%" onclick="agregarCarrito('${p.id}')">🛒 Agregar</button></div>`;
+                    tAdmin.innerHTML += `<tr><td>${p.nombre}</td><td>$${p.precio}</td><td><button style="background:none; border:none; cursor:pointer;" onclick="borrarP('${p.id}')">🗑️</button></td></tr>`;
+                });
+            });
+
+            onSnapshot(query(collection(db, 'ledger'), orderBy('fecha', 'desc')), (snap) => {
+                const log = document.getElementById('logActividad');
+                log.innerHTML = '';
+                let v = 0, g = 0, i = 0;
+                snap.forEach(d => {
+                    const m = {id: d.id, ...d.data()};
+                    const fecha = new Date(m.fecha).toLocaleString('es-EC', {day:'2-digit', month:'2-digit', hour:'2-digit', minute:'2-digit'});
+                    
+                    let estadoTxt = m.estado === 'pendiente' ? '<span class="status-pendiente">Pendiente</span>' : (m.estado === 'devuelto' ? '<span class="status-devuelto">Devuelto</span>' : '<span class="status-confirmado">Confirmado</span>');
+                    
+                    if(m.estado === 'confirmado') {
+                        if(m.tipo === 'venta') v += m.monto;
+                        if(m.tipo === 'gasto') g += m.monto;
+                        if(m.tipo === 'inversion') i += m.monto;
+                    }
+
+                    let btnConfirmar = (m.tipo === 'venta' && m.estado === 'pendiente') ? `<button class="btn" style="padding:4px 8px; font-size:0.7rem; background:green; margin-right:5px;" onclick="confirmV('${m.id}')">✔</button>` : '';
+                    let btnDevolver = (m.estado === 'confirmado') ? `<button class="btn" style="padding:4px 8px; font-size:0.7rem; background:red; margin-right:5px;" onclick="devV('${m.id}')">↩</button>` : '';
+                    let btnEliminar = `<button style="background:none; border:none; cursor:pointer;" onclick="delV('${m.id}')">🗑️</button>`;
+
+                    log.innerHTML += `<tr><td>${fecha}</td><td>${m.concepto}</td><td>$${m.monto.toFixed(2)}</td><td>${estadoTxt}</td><td>${btnConfirmar}${btnDevolver}${btnEliminar}</td></tr>`;
+                });
+                document.getElementById('statGanancias').innerText = `$${v.toFixed(2)}`;
+                document.getElementById('statGastos').innerText = `$${g.toFixed(2)}`;
+                document.getElementById('statInversiones').innerText = `$${i.toFixed(2)}`;
+                const bal = v - g - i;
+                document.getElementById('statBalance').innerText = `$${bal.toFixed(2)}`;
+                document.getElementById('statBalance').style.color = bal >= 0 ? 'green' : 'red';
+            });
+        });
+
+        // FUNCIONES FRONT
+        window.cambiarCant = (id, d) => { const s = document.getElementById(`cant-${id}`); s.innerText = Math.max(1, parseInt(s.innerText) + d); };
+        window.agregarCarrito = (id) => {
+            const p = prodsCache.find(x => x.id === id);
+            const c = parseInt(document.getElementById(`cant-${id}`).innerText);
+            if(carrito[id]) carrito[id].cantidad += c;
+            else carrito[id] = { nombre: p.nombre, precio: p.precio, cantidad: c };
+            document.getElementById(`cant-${id}`).innerText = 1;
+            actualizarCarrito();
+            document.getElementById('modalCarrito').style.display='block';
+        };
+
+        function actualizarCarrito() {
+            const l = document.getElementById('listaCarrito');
+            l.innerHTML = ''; let t = 0, it = 0;
+            for(const id in carrito){
+                const sub = carrito[id].precio * carrito[id].cantidad;
+                t += sub; it += carrito[id].cantidad;
+                l.innerHTML += `<div style="display:flex; justify-content:space-between; margin-bottom:10px;"><span><b>${carrito[id].cantidad}x</b> ${carrito[id].nombre}</span><span>$${sub.toFixed(2)}</span></div>`;
+            }
+            document.getElementById('contadorCarrito').innerText = it;
+            document.getElementById('totalMonto').innerText = `$${t.toFixed(2)}`;
+        }
+
+        document.getElementById('btnWhatsApp').onclick = async () => {
+    if(Object.keys(carrito).length === 0) return;
+
+    // 1. LIMPIEZA TOTAL DEL NÚMERO (Elimina puntos, espacios y signos)
+    // Usamos el número directo para asegurar que no haya errores de base de datos
+    let numeroLimpio = "593985127134"; 
+
+    let m = "🛒 *NUEVO PEDIDO VILLIE*\n\n", t = 0;
+    for(const id in carrito){
+        const sub = carrito[id].precio * carrito[id].cantidad;
+        m += `✅ ${carrito[id].cantidad}x ${carrito[id].nombre} ($${sub.toFixed(2)})\n`;
+        t += sub;
+    }
+    m += `\n💰 *TOTAL: $${t.toFixed(2)}*`;
+
+    // 2. REGISTRO EN CONTABILIDAD
+    try {
+        await addDoc(collection(db, 'ledger'), { 
+            tipo:'venta', 
+            concepto:'Pedido WhatsApp', 
+            monto: t, 
+            estado: 'pendiente', 
+            fecha: new Date().toISOString() 
+        });
+    } catch(e) { console.log("Error al registrar venta"); }
+
+    // 3. ENLACE DIRECTO SIN INTERMEDIARIOS
+    const url = "https://api.whatsapp.com/send?phone=" + numeroLimpio + "&text=" + encodeURIComponent(m);
+    
+    window.open(url, '_blank');
+    
+    // Limpiar carrito tras el pedido
+    carrito = {}; 
+    actualizarCarrito(); 
+    document.getElementById('modalCarrito').style.display = 'none';
+};
+
+        // IA RECETA
+        document.getElementById('btnConsultarIA').onclick = () => {
+            const i = document.getElementById('comidaInput').value;
+            if(!i) return;
+            document.getElementById('sommelierLoading').style.display='block';
+            document.getElementById('sommelierRespuesta').style.display='none';
+            setTimeout(() => {
+                document.getElementById('sommelierLoading').style.display='none';
+                document.getElementById('sommelierRespuesta').style.display='block';
+                document.getElementById('sommelierRespuesta').innerHTML = `<h3>👨‍🍳 Sugerencia Villie</h3><br><p>Con <b>${i}</b> prepara algo rápido. ¡El secreto es sazonar bien!</p>`;
+            }, 1500);
+        };
+
+        // ADMIN ACCIONES
+        window.confirmV = async (id) => { await updateDoc(doc(db, 'ledger', id), { estado: 'confirmado' }); };
+        window.devV = async (id) => { if(confirm("¿Devolución?")) await updateDoc(doc(db, 'ledger', id), { estado: 'devuelto' }); };
+        window.delV = async (id) => { if(confirm("¿Eliminar registro?")) await deleteDoc(doc(db, 'ledger', id)); };
+        window.borrarP = async (id) => { if(confirm("¿Borrar producto?")) await deleteDoc(doc(db, 'inventory', id)); };
+
+        document.getElementById('btnGuardarAjustes').onclick = async () => {
+            await setDoc(doc(db, 'settings', 'store_info'), { whatsapp: document.getElementById('confWhatsapp').value, direccion: document.getElementById('confDireccion').value });
+            alert("Ajustes guardados");
+        };
+
+        document.getElementById('btnGuardarMovimiento').onclick = async () => {
+            const t = document.getElementById('tipoMovimiento').value;
+            const c = document.getElementById('descMovimiento').value;
+            const m = parseFloat(document.getElementById('montoMovimiento').value);
+            if(c && m) {
+                await addDoc(collection(db, 'ledger'), { tipo: t, concepto: c, monto: m, estado: 'confirmado', fecha: new Date().toISOString() });
+                alert("Registrado");
+            }
+        };
+
+        document.getElementById('btnGuardarProducto').onclick = async () => {
+            const n = document.getElementById('pNombre').value;
+            const p = parseFloat(document.getElementById('pPrecio').value);
+            const i = document.getElementById('pImagen').value;
+            if(n && p) {
+                await addDoc(collection(db, 'inventory'), { nombre: n, precio: p, imagen: i });
+                alert("Producto subido");
+            }
+        };
+
+        // UI NAV
+        document.getElementById('btnAbrirCarrito').onclick = () => document.getElementById('modalCarrito').style.display='block';
+        document.getElementById('cerrarCarrito').onclick = () => document.getElementById('modalCarrito').style.display='none';
+        document.getElementById('linkAdmin').onclick = (e) => { e.preventDefault(); document.getElementById('modalLogin').style.display='block'; };
+        document.getElementById('btnAcceder').onclick = () => {
+            if(document.getElementById('passAdmin').value === 'Villie25@') {
+                document.getElementById('modalLogin').style.display='none';
+                document.getElementById('seccionPublica').style.display='none';
+                document.getElementById('adminDashboard').style.display='block';
+            } else alert("Error");
+        };
+        document.getElementById('btnCerrarSesionAdmin').onclick = () => location.reload();
+    </script>
+</body>
+</html>
