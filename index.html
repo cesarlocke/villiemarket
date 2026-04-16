@@ -1,0 +1,280 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Villie Market | Gestión Profesional</title>
+    <style>
+        :root {
+            --color-primary: #1565C0;
+            --color-secondary: #FF8F00;
+            --color-success: #2e7d32;
+            --color-danger: #c62828;
+            --color-info: #0277bd;
+            --color-bg: #f5f7fa;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Segoe UI', sans-serif; scroll-behavior: smooth; }
+        body { background-color: var(--color-bg); color: #333; line-height: 1.6; }
+
+        header {
+            background-color: var(--color-primary); color: white; padding: 1rem 5%;
+            display: flex; justify-content: space-between; align-items: center;
+            position: sticky; top: 0; z-index: 100; box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+        }
+        .logo { font-size: 1.8rem; font-weight: 900; color: white; text-decoration: none; display: flex; align-items: center; }
+        nav ul { list-style: none; display: flex; gap: 2rem; }
+        nav a { color: white; text-decoration: none; font-weight: 500; }
+
+        .hero {
+            background: linear-gradient(rgba(21, 101, 192, 0.7), rgba(21, 101, 192, 0.7)), 
+                        url('https://images.unsplash.com/photo-1542838132-92c53300491e?auto=format&fit=crop&w=1920&q=80') center/cover;
+            height: 40vh; display: flex; flex-direction: column; justify-content: center; align-items: center;
+            text-align: center; color: white; padding: 0 20px;
+        }
+
+        .section-title { font-size: 2.2rem; color: var(--color-primary); margin: 2rem 0; text-align: center; }
+        .grid-productos { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 2rem; max-width: 1200px; margin: 0 auto; padding: 20px; }
+        .tarjeta-producto { background: white; padding: 1.5rem; border-radius: 15px; box-shadow: 0 5px 15px rgba(0,0,0,0.05); text-align: center; }
+        .tarjeta-producto img { width: 100%; height: 150px; object-fit: contain; }
+
+        .btn { padding: 10px 20px; border-radius: 8px; border: none; font-weight: bold; cursor: pointer; transition: 0.3s; color: white; }
+        .btn-success { background: var(--color-success); }
+        .btn-danger { background: var(--color-danger); }
+        .btn-info { background: var(--color-info); }
+        .btn-warning { background: var(--color-secondary); }
+
+        /* IA SECTION */
+        .ia-section { padding: 3rem 5%; background: white; text-align: center; border-bottom: 1px solid #eee; }
+
+        /* ADMIN */
+        #adminDashboard { display: none; padding: 2rem 5%; background: #f0f2f5; min-height: 100vh; }
+        .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem; margin-bottom: 2rem; }
+        .stat-box { background: white; padding: 1.5rem; border-radius: 10px; text-align: center; box-shadow: 0 2px 5px rgba(0,0,0,0.05); }
+        .admin-card { background: white; padding: 1.5rem; border-radius: 12px; box-shadow: 0 2px 10px rgba(0,0,0,0.05); margin-bottom: 20px; }
+        
+        table { width: 100%; border-collapse: collapse; font-size: 0.85rem; margin-top: 10px; }
+        th, td { padding: 12px; border-bottom: 1px solid #eee; text-align: left; }
+        .status-pendiente { color: var(--color-secondary); font-weight: bold; }
+        .status-confirmado { color: var(--color-success); font-weight: bold; }
+        .status-devuelto { color: var(--color-danger); text-decoration: line-through; }
+
+        input, select { width: 100%; padding: 10px; margin: 5px 0 15px 0; border: 1px solid #ccc; border-radius: 5px; }
+        .modal { display: none; position: fixed; z-index: 1000; left: 0; top: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); }
+        .modal-contenido { background: white; margin: 5% auto; padding: 2rem; width: 95%; max-width: 500px; border-radius: 15px; position: relative; max-height: 85vh; overflow-y: auto; }
+        footer { background: #2c3e50; color: white; padding: 2rem; text-align: center; }
+    </style>
+</head>
+<body>
+
+    <header>
+        <a href="/" class="logo"><span style="margin-right: 10px;">🛒</span>Vil<span style="color:var(--color-secondary)">lie</span></a>
+        <nav>
+            <ul>
+                <li><a href="#inicio">Inicio</a></li>
+                <li><a href="#ia-recetas">Recetas IA</a></li>
+                <li><a href="#productos">Catálogo</a></li>
+            </ul>
+        </nav>
+        <div id="btnAbrirCarrito" style="cursor:pointer; font-size: 1.4rem;">🛍️ <span id="contadorCarrito">0</span></div>
+    </header>
+
+    <div id="seccionPublica">
+        <section id="inicio" class="hero">
+            <h1>Bienvenido a Villie <span>Cesar</span></h1>
+            <p id="displayDir">Guayaquil, Ecuador</p>
+        </section>
+
+        <section id="ia-recetas" class="ia-section">
+            <h2 class="section-title">Asistente de Cocina IA 🍳</h2>
+            <div style="max-width: 600px; margin: 2rem auto;">
+                <input type="text" id="comidaInput" placeholder="Ej: arroz, huevos y tomate...">
+                <button class="btn btn-warning" id="btnConsultarIA" style="width:100%">Generar Receta Mágica ✨</button>
+            </div>
+            <div id="sommelierRespuesta" style="display:none; text-align:left; background:#f9f9f9; padding:20px; border-left:5px solid var(--color-secondary); border-radius:8px; max-width:600px; margin:0 auto;"></div>
+        </section>
+
+        <h2 class="section-title">Nuestro Catálogo</h2>
+        <div class="grid-productos" id="contenedorProductos"></div>
+    </div>
+
+    <section id="adminDashboard">
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom: 2rem;">
+            <h2>⚙️ Control Maestro</h2>
+            <button class="btn btn-danger" id="btnCerrarSesionAdmin">Salir</button>
+        </div>
+
+        <div class="stats-grid">
+            <div class="stat-box"><h4>Ventas Conf.</h4><div class="valor" style="color:var(--color-success)" id="statGanancias">$0.00</div></div>
+            <div class="stat-box"><h4>Gastos</h4><div class="valor" style="color:var(--color-danger)" id="statGastos">$0.00</div></div>
+            <div class="stat-box"><h4>Balance</h4><div class="valor" id="statBalance">$0.00</div></div>
+        </div>
+
+        <div class="admin-card">
+            <h3>📖 Libro Diario</h3>
+            <div style="overflow-x: auto;">
+                <table>
+                    <thead><tr><th>Fecha</th><th>Concepto</th><th>Monto</th><th>Estado</th><th>Acciones</th></tr></thead>
+                    <tbody id="logLibroDiario"></tbody>
+                </table>
+            </div>
+        </div>
+
+        <div style="display:grid; grid-template-columns: 1fr 1fr; gap: 20px;">
+            <div class="admin-card">
+                <h3>➕ Registrar Gasto</h3>
+                <input type="text" id="descMovimiento" placeholder="Concepto">
+                <input type="number" id="montoMovimiento" placeholder="Monto $">
+                <button class="btn btn-info" style="width:100%" id="btnGuardarMovimiento">Registrar</button>
+            </div>
+            <div class="admin-card">
+                <h3>📦 Subir Producto</h3>
+                <input type="text" id="pNombre" placeholder="Nombre">
+                <input type="number" id="pPrecio" placeholder="Precio">
+                <input type="text" id="pImagen" placeholder="URL Imagen">
+                <button class="btn btn-success" style="width:100%" id="btnGuardarProducto">Añadir</button>
+            </div>
+        </div>
+    </section>
+
+    <div id="modalCarrito" class="modal">
+        <div class="modal-contenido">
+            <span id="cerrarCarrito" style="position:absolute; right:20px; cursor:pointer; font-weight:bold;">X</span>
+            <h3>Tu Pedido 🧺</h3><br>
+            <div id="listaCarrito"></div>
+            <div style="display:flex; justify-content:space-between; font-weight:bold; margin-top:10px; border-top:1px solid #eee; padding-top:10px;">
+                <span>Total:</span><span id="totalMonto">$0.00</span>
+            </div><br>
+            <button class="btn btn-success" style="width:100%; background:#25D366" id="btnWhatsApp">📱 Pedir por WhatsApp</button>
+        </div>
+    </div>
+
+    <div id="modalLogin" class="modal">
+        <div class="modal-contenido" style="text-align:center;">
+            <input type="password" id="passAdmin" placeholder="Contraseña">
+            <button class="btn btn-warning" style="width:100%; margin-top:10px;" id="btnAcceder">Entrar</button>
+        </div>
+    </div>
+
+    <footer>
+        <p>Villie Market © 2026 | <a href="#" id="linkAdmin" style="color:#bdc3c7; text-decoration:none;">Admin</a></p>
+    </footer>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.9.0/firebase-app.js";
+        import { getAuth, signInAnonymously } from "https://www.gstatic.com/firebasejs/10.9.0/firebase-auth.js";
+        import { getFirestore, collection, onSnapshot, addDoc, doc, updateDoc, deleteDoc, query, orderBy } from "https://www.gstatic.com/firebasejs/10.9.0/firebase-firestore.js";
+
+        const firebaseConfig = {
+          apiKey: "AIzaSyC1Xtkg5V9YaGADeUmjoWL0Z_MgDalKKhU",
+          authDomain: "villie-9ef15.firebaseapp.com",
+          projectId: "villie-9ef15",
+          storageBucket: "villie-9ef15.firebasestorage.app",
+          messagingSenderId: "372056218286",
+          appId: "1:372056218286:web:8feab32747552b02d96b3f"
+        };
+        
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        const db = getFirestore(app);
+
+        let carrito = {}; 
+        let prodsCache = [];
+        const miWhatsApp = "593985127134";
+
+        signInAnonymously(auth).then(() => {
+            onSnapshot(collection(db, 'inventory'), (snap) => {
+                const cont = document.getElementById('contenedorProductos');
+                cont.innerHTML = ''; prodsCache = [];
+                snap.forEach(d => {
+                    const p = {id: d.id, ...d.data()};
+                    prodsCache.push(p);
+                    cont.innerHTML += `<div class="tarjeta-producto"><img src="${p.imagen}"><h3>${p.nombre}</h3><p style="font-weight:bold; color:var(--color-primary)">$${parseFloat(p.precio).toFixed(2)}</p><button class="btn btn-warning" style="margin-top:10px;" onclick="agregarCarrito('${p.id}', '${p.nombre}', ${p.precio})">🛒 Agregar</button></div>`;
+                });
+            });
+
+            onSnapshot(query(collection(db, 'ledger'), orderBy('fecha', 'desc')), (snap) => {
+                const log = document.getElementById('logLibroDiario');
+                log.innerHTML = '';
+                let v = 0, g = 0;
+                snap.forEach(d => {
+                    const m = {id: d.id, ...d.data()};
+                    const fecha = new Date(m.fecha).toLocaleString('es-EC', {day:'2-digit', month:'2-digit', hour:'2-digit', minute:'2-digit'});
+                    if(m.estado === 'confirmado') {
+                        if(m.tipo === 'venta') v += m.monto;
+                        else g += m.monto;
+                    }
+                    log.innerHTML += `<tr><td>${fecha}</td><td>${m.concepto}</td><td>$${m.monto.toFixed(2)}</td><td>${m.estado}</td><td>
+                        ${m.estado === 'pendiente' ? `<button onclick="confV('${m.id}')">✔</button>` : ''}
+                        <button onclick="delV('${m.id}')">🗑️</button>
+                    </td></tr>`;
+                });
+                document.getElementById('statGanancias').innerText = `$${v.toFixed(2)}`;
+                document.getElementById('statGastos').innerText = `$${g.toFixed(2)}`;
+                document.getElementById('statBalance').innerText = `$${(v - g).toFixed(2)}`;
+            });
+        });
+
+        window.agregarCarrito = (id, nombre, precio) => {
+            if(carrito[id]) carrito[id].cantidad++;
+            else carrito[id] = { nombre, precio, cantidad: 1 };
+            actualizarCarrito();
+            document.getElementById('modalCarrito').style.display = 'block';
+        };
+
+        function actualizarCarrito() {
+            let total = 0, items = 0;
+            const lista = document.getElementById('listaCarrito');
+            lista.innerHTML = '';
+            for(const id in carrito){
+                const sub = carrito[id].precio * carrito[id].cantidad;
+                total += sub; items += carrito[id].cantidad;
+                lista.innerHTML += `<p>• ${carrito[id].cantidad}x ${carrito[id].nombre} - $${sub.toFixed(2)}</p>`;
+            }
+            document.getElementById('contadorCarrito').innerText = items;
+            document.getElementById('totalMonto').innerText = `$${total.toFixed(2)}`;
+        }
+
+        document.getElementById('btnWhatsApp').onclick = async () => {
+            if(Object.keys(carrito).length === 0) return;
+            let msg = "🛒 *NUEVO PEDIDO*\n\n", t = 0;
+            for(const id in carrito){
+                const sub = carrito[id].precio * carrito[id].cantidad;
+                msg += `✅ ${carrito[id].cantidad}x ${carrito[id].nombre} ($${sub.toFixed(2)})\n`;
+                t += sub;
+            }
+            msg += `\n💰 *TOTAL: $${t.toFixed(2)}*`;
+            await addDoc(collection(db, 'ledger'), { tipo:'venta', concepto:'WhatsApp', monto: t, estado: 'pendiente', fecha: new Date().toISOString() });
+            window.open(`https://api.whatsapp.com/send?phone=${miWhatsApp}&text=${encodeURIComponent(msg)}`, '_blank');
+            carrito = {}; actualizarCarrito(); document.getElementById('modalCarrito').style.display = 'none';
+        };
+
+        document.getElementById('btnConsultarIA').onclick = () => {
+            const i = document.getElementById('comidaInput').value;
+            document.getElementById('sommelierRespuesta').style.display='block';
+            document.getElementById('sommelierRespuesta').innerHTML = `<p>👨‍🍳 Con <b>${i}</b> puedes preparar algo delicioso. ¡El secreto está en el sofrito!</p>`;
+        };
+
+        window.confV = async (id) => await updateDoc(doc(db, 'ledger', id), { estado: 'confirmado' });
+        window.delV = async (id) => await deleteDoc(doc(db, 'ledger', id));
+
+        document.getElementById('btnGuardarMovimiento').onclick = async () => {
+            await addDoc(collection(db, 'ledger'), { tipo:'gasto', concepto: document.getElementById('descMovimiento').value, monto: parseFloat(document.getElementById('montoMovimiento').value), estado:'confirmado', fecha: new Date().toISOString() });
+        };
+
+        document.getElementById('btnGuardarProducto').onclick = async () => {
+            await addDoc(collection(db, 'inventory'), { nombre: document.getElementById('pNombre').value, precio: parseFloat(document.getElementById('pPrecio').value), imagen: document.getElementById('pImagen').value });
+        };
+
+        document.getElementById('linkAdmin').onclick = (e) => { e.preventDefault(); document.getElementById('modalLogin').style.display='block'; };
+        document.getElementById('btnAcceder').onclick = () => {
+            if(document.getElementById('passAdmin').value === 'Villie25@') {
+                document.getElementById('modalLogin').style.display='none';
+                document.getElementById('seccionPublica').style.display='none';
+                document.getElementById('adminDashboard').style.display='block';
+            }
+        };
+        document.getElementById('btnCerrarSesionAdmin').onclick = () => location.reload();
+    </script>
+</body>
+</html>
