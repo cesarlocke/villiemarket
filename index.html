@@ -276,7 +276,7 @@
         };
         
         // --- 2. LLAVE DE GEMINI RESTAURADA CORRECTAMENTE ---
-        const GEMINI_API_KEY = "AIzaSyCNa2dSOBorGfpziJWx1rGJVoDzRDGSx3c"; 
+        const GEMINI_API_KEY = "AIzaSyDgczulqsjc1tKD8cDL-E8GlN_hi1yFXvE"; 
 
         const app = initializeApp(firebaseConfig);
         const auth = getAuth(app);
@@ -348,50 +348,49 @@
             finally { loader.style.display = 'none'; btnText.innerText = "📷 Identificar Producto"; document.getElementById('btnCapturarScanner').disabled = false; }
         };
 
-// --- CHEF IA: VERSIÓN FINAL REFORZADA ---
-        document.getElementById('btnConsultarIA').onclick = async () => {
-            const inp = document.getElementById('comidaInput').value.trim(); 
-            if(!inp) return showToast("Escribe qué ingredientes tienes");
-            
-            const btn = document.getElementById('btnConsultarIA'), 
-                  loader = document.getElementById('iaLoader'), 
-                  txt = document.getElementById('btnIAText'), 
-                  res = document.getElementById('sommelierRespuesta');
-            
-            btn.disabled = true; loader.style.display = 'block'; txt.style.display = 'none'; res.classList.add('hidden');
-            
-            try {
-                // USAMOS GEMINI-PRO QUE ES EL QUE MENOS ERRORES 404 DA
-                const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent?key=${GEMINI_API_KEY}`;
-                
-                const r = await fetch(url, {
-                    method: 'POST', 
-                    headers: {'Content-Type': 'application/json'},
-                    body: JSON.stringify({ 
-                        contents: [{ parts: [{ text: `Eres el Chef Villie. Un usuario tiene: ${inp}. Dame una receta rápida en formato HTML (h3, p, ul). No uses bloques markdown.` }] }] 
-                    })
-                });
+// --- CHEF IA: VERSIÓN CURL-COMPATIBLE ---
+document.getElementById('btnConsultarIA').onclick = async () => {
+    const inp = document.getElementById('comidaInput').value.trim(); 
+    if(!inp) return showToast("Escribe qué ingredientes tienes");
+    
+    const btn = document.getElementById('btnConsultarIA'), 
+          loader = document.getElementById('iaLoader'), 
+          txt = document.getElementById('btnIAText'), 
+          res = document.getElementById('sommelierRespuesta');
+    
+    btn.disabled = true; loader.style.display = 'block'; txt.style.display = 'none'; res.classList.add('hidden');
+    
+    try {
+        // Usamos la misma ruta de tu curl (v1beta) pero con el nombre de modelo estándar
+        const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${GEMINI_API_KEY}`;
+        
+        const r = await fetch(url, {
+            method: 'POST', 
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ 
+                contents: [{ parts: [{ text: `Eres el Chef Villie. Un usuario tiene: ${inp}. Dame una receta rápida en formato HTML (h3, p, ul). No uses bloques markdown.` }] }] 
+            })
+        });
 
-                const d = await r.json();
+        const d = await r.json();
 
-                if (d.candidates && d.candidates[0]) {
-                    let textoReceta = d.candidates[0].content.parts[0].text;
-                    res.innerHTML = textoReceta.replace(/```html|```/g, '');
-                    res.classList.remove('hidden');
-                    showToast("¡Receta generada! 👨‍🍳");
-                } else {
-                    // Si falla, aquí veremos el porqué real
-                    console.error("ERROR DE GOOGLE:", d);
-                    showToast("Error de modelo. Intenta con otra llave.");
-                }
+        if (d.candidates && d.candidates[0]) {
+            let textoReceta = d.candidates[0].content.parts[0].text;
+            res.innerHTML = textoReceta.replace(/```html|```/g, '');
+            res.classList.remove('hidden');
+            showToast("¡Receta generada con éxito! 🥘");
+        } else {
+            console.error("Respuesta de Google:", d);
+            showToast("Google no devolvió datos. Revisa la consola.");
+        }
 
-            } catch(e) { 
-                console.error("ERROR DE RED:", e);
-                showToast("Error de conexión."); 
-            } finally { 
-                btn.disabled = false; loader.style.display = 'none'; txt.style.display = 'inline'; 
-            }
-        };
+    } catch(e) { 
+        console.error("Error de conexión:", e);
+        showToast("Error de red. Verifica tu conexión."); 
+    } finally { 
+        btn.disabled = false; loader.style.display = 'none'; txt.style.display = 'inline'; 
+    }
+};
 
         // --- RENDER PÚBLICO Y CARRITO ---
         function renderPublic() {
