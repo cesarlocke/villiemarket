@@ -348,21 +348,28 @@
             finally { loader.style.display = 'none'; btnText.innerText = "📷 Identificar Producto"; document.getElementById('btnCapturarScanner').disabled = false; }
         };
 
-        // --- CHEF IA (VERSIÓN CORREGIDA V1BETA) ---
+        // --- CHEF IA: VERSIÓN REFORZADA ---
         document.getElementById('btnConsultarIA').onclick = async () => {
             const inp = document.getElementById('comidaInput').value.trim(); 
             if(!inp) return showToast("Escribe qué ingredientes tienes");
-            if (!GEMINI_API_KEY) return showToast("Falta la API KEY de Gemini");
-
-            const btn = document.getElementById('btnConsultarIA'), loader = document.getElementById('iaLoader'), txt = document.getElementById('btnIAText'), res = document.getElementById('sommelierRespuesta');
+            
+            const btn = document.getElementById('btnConsultarIA'), 
+                  loader = document.getElementById('iaLoader'), 
+                  txt = document.getElementById('btnIAText'), 
+                  res = document.getElementById('sommelierRespuesta');
             
             btn.disabled = true; loader.style.display = 'block'; txt.style.display = 'none'; res.classList.add('hidden');
             
             try {
-                // CAMBIAMOS v1 POR v1beta QUE ES MÁS COMPATIBLE
-                const r = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${GEMINI_API_KEY}`, {
-                    method: 'POST', headers: {'Content-Type': 'application/json'},
-                    body: JSON.stringify({ contents: [{ parts: [{ text: `Eres el Chef Villie. Un usuario tiene: ${inp}. Dame una receta rápida en formato HTML (h3, p, ul). No uses bloques markdown.` }] }] })
+                // Probamos con v1 (más estable) y el modelo flash
+                const url = `https://generativelanguage.googleapis.com/v1/models/gemini-1.5-flash:generateContent?key=${GEMINI_API_KEY}`;
+                
+                const r = await fetch(url, {
+                    method: 'POST', 
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({ 
+                        contents: [{ parts: [{ text: `Eres el Chef Villie. Un usuario tiene: ${inp}. Dame una receta rápida en formato HTML (h3, p, ul). No uses bloques markdown.` }] }] 
+                    })
                 });
 
                 const d = await r.json();
@@ -372,14 +379,14 @@
                     res.innerHTML = textoReceta.replace(/```html|```/g, '');
                     res.classList.remove('hidden');
                 } else {
-                    // Si falla, imprimimos el error real que manda Google
-                    console.error("Detalle del error de Google:", d);
-                    showToast("Google rechazó la petición. Revisa la consola (F12)");
+                    // Aquí imprimimos TODO lo que mandó Google para saber la verdad
+                    console.error("RESPUESTA COMPLETA DE GOOGLE:", d);
+                    showToast("Error de validación. Revisa la consola.");
                 }
 
             } catch(e) { 
-                showToast("Error de conexión"); 
-                console.error("Error crítico:", e); 
+                console.error("ERROR DE CONEXIÓN:", e);
+                showToast("Error de red o servidor."); 
             } finally { 
                 btn.disabled = false; loader.style.display = 'none'; txt.style.display = 'inline'; 
             }
