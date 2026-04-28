@@ -348,7 +348,7 @@
             finally { loader.style.display = 'none'; btnText.innerText = "📷 Identificar Producto"; document.getElementById('btnCapturarScanner').disabled = false; }
         };
 
-        // --- CHEF IA: VERSIÓN REFORZADA ---
+       // --- CHEF IA: VERSIÓN TANQUE (CORREGIDA) ---
         document.getElementById('btnConsultarIA').onclick = async () => {
             const inp = document.getElementById('comidaInput').value.trim(); 
             if(!inp) return showToast("Escribe qué ingredientes tienes");
@@ -361,8 +361,8 @@
             btn.disabled = true; loader.style.display = 'block'; txt.style.display = 'none'; res.classList.add('hidden');
             
             try {
-                // Probamos con v1 (más estable) y el modelo flash
-                const url = `https://generativelanguage.googleapis.com/v1/models/gemini-1.5-flash:generateContent?key=${GEMINI_API_KEY}`;
+                // USAMOS v1beta QUE ES LA QUE MEJOR FUNCIONA CON GEMINI 1.5 FLASH
+                const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${GEMINI_API_KEY}`;
                 
                 const r = await fetch(url, {
                     method: 'POST', 
@@ -378,15 +378,16 @@
                     let textoReceta = d.candidates[0].content.parts[0].text;
                     res.innerHTML = textoReceta.replace(/```html|```/g, '');
                     res.classList.remove('hidden');
+                    showToast("¡Buen provecho! 👨‍🍳");
                 } else {
-                    // Aquí imprimimos TODO lo que mandó Google para saber la verdad
-                    console.error("RESPUESTA COMPLETA DE GOOGLE:", d);
-                    showToast("Error de validación. Revisa la consola.");
+                    // Si falla, ahora sí veremos el secreto en la consola
+                    console.error("DETALLE DEL ERROR:", d);
+                    showToast("Google rechazó la petición. Mira la consola.");
                 }
 
             } catch(e) { 
-                console.error("ERROR DE CONEXIÓN:", e);
-                showToast("Error de red o servidor."); 
+                console.error("ERROR CRÍTICO:", e);
+                showToast("Error de conexión."); 
             } finally { 
                 btn.disabled = false; loader.style.display = 'none'; txt.style.display = 'inline'; 
             }
