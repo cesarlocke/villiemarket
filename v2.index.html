@@ -275,8 +275,8 @@
             appId: "1:372056218286:web:8feab32747552b02d96b3f"
         };
         
-        // --- 2. LLAVE DE GEMINI ---
-        const GEMINI_API_KEY = "AQ.Ab8RN6Kp-i_WisctdH7t6S9xhyQuGaMriQkkw82-wYlbnvy_gQ"; 
+        // --- 2. LLAVE DE GEMINI RESTAURADA CORRECTAMENTE ---
+        const GEMINI_API_KEY = "AIzaSyCNa2dSOBorGfpziJWx1rGJVoDzRDGSx3c"; 
 
         const app = initializeApp(firebaseConfig);
         const auth = getAuth(app);
@@ -321,7 +321,7 @@
         }
 
         document.getElementById('btnCapturarScanner').onclick = async () => {
-            if (GEMINI_API_KEY === "PON_TU_API_KEY_AQUI" || !GEMINI_API_KEY) return showToast("Falta configurar la API KEY de Gemini");
+            if (!GEMINI_API_KEY) return showToast("Falta configurar la API KEY de Gemini");
             const video = document.getElementById('video-preview'), canvas = document.getElementById('scanner-canvas');
             const loader = document.getElementById('scanner-loader'), btnText = document.getElementById('scanner-btn-text');
 
@@ -344,7 +344,7 @@
                     document.getElementById('pCategoria').value = productData.categoria || "solido-salado";
                     showToast("Producto identificado 🏷️"); cerrarModales();
                 }
-            } catch (err) { showToast("No se pudo identificar el producto."); }
+            } catch (err) { showToast("No se pudo identificar el producto."); console.error(err); }
             finally { loader.style.display = 'none'; btnText.innerText = "📷 Identificar Producto"; document.getElementById('btnCapturarScanner').disabled = false; }
         };
 
@@ -352,7 +352,7 @@
         document.getElementById('btnConsultarIA').onclick = async () => {
             const inp = document.getElementById('comidaInput').value.trim(); 
             if(!inp) return showToast("Escribe qué ingredientes tienes");
-            if (GEMINI_API_KEY === "PON_TU_API_KEY_AQUI" || !GEMINI_API_KEY) return showToast("Falta la API KEY de Gemini");
+            if (!GEMINI_API_KEY) return showToast("Falta la API KEY de Gemini");
 
             const btn = document.getElementById('btnConsultarIA'), loader = document.getElementById('iaLoader'), txt = document.getElementById('btnIAText'), res = document.getElementById('sommelierRespuesta');
             btn.disabled = true; loader.style.display = 'block'; txt.style.display = 'none'; res.classList.add('hidden');
@@ -365,7 +365,7 @@
                 const d = await r.json();
                 res.innerHTML = d.candidates[0].content.parts[0].text.replace(/```html|```/g, '');
                 res.classList.remove('hidden');
-            } catch(e) { showToast("Error al generar receta"); }
+            } catch(e) { showToast("Error al generar receta"); console.error(e); }
             finally { btn.disabled = false; loader.style.display = 'none'; txt.style.display = 'inline'; }
         };
 
