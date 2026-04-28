@@ -355,6 +355,7 @@
             if (!GEMINI_API_KEY) return showToast("Falta la API KEY de Gemini");
 
             const btn = document.getElementById('btnConsultarIA'), loader = document.getElementById('iaLoader'), txt = document.getElementById('btnIAText'), res = document.getElementById('sommelierRespuesta');
+            
             btn.disabled = true; loader.style.display = 'block'; txt.style.display = 'none'; res.classList.add('hidden');
             
             try {
@@ -362,11 +363,26 @@
                     method: 'POST', headers: {'Content-Type': 'application/json'},
                     body: JSON.stringify({ contents: [{ parts: [{ text: `Eres el Chef Villie. Un usuario tiene: ${inp}. Dame una receta rápida en formato HTML (h3, p, ul). No uses bloques markdown.` }] }] })
                 });
+
                 const d = await r.json();
-                res.innerHTML = d.candidates[0].content.parts[0].text.replace(/```html|```/g, '');
-                res.classList.remove('hidden');
-            } catch(e) { showToast("Error al generar receta"); console.error(e); }
-            finally { btn.disabled = false; loader.style.display = 'none'; txt.style.display = 'inline'; }
+
+                // Validación de seguridad para que no salga el error de "undefined"
+                if (d.candidates && d.candidates[0] && d.candidates[0].content && d.candidates[0].content.parts) {
+                    let textoReceta = d.candidates[0].content.parts[0].text;
+                    // Limpiamos el texto por si Gemini envía etiquetas de markdown
+                    res.innerHTML = textoReceta.replace(/```html|```/g, '');
+                    res.classList.remove('hidden');
+                } else {
+                    console.error("Respuesta inesperada de Google:", d);
+                    showToast("Google no devolvió una receta válida");
+                }
+
+            } catch(e) { 
+                showToast("Error de conexión con la IA"); 
+                console.error("Error detallado:", e); 
+            } finally { 
+                btn.disabled = false; loader.style.display = 'none'; txt.style.display = 'inline'; 
+            }
         };
 
         // --- RENDER PÚBLICO Y CARRITO ---
